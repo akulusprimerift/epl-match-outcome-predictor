@@ -1,0 +1,24 @@
+# Local secrets
+.env
+.env.*
+!.env.example
+
+# Virtual environments
+.venv/
+venv/
+
+# Python caches and build artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+build/
+dist/
+*.egg-info/
+
+# OS and editor artifacts
+.DS_Store
+Thumbs.db
+
+# Cached API responses and generated model artifacts
+data/raw/api_football/*.json
+models/*.json
