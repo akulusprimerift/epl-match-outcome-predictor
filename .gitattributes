@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Raw source files must remain byte-identical to their downloaded contents.
+data/raw/football_data/*.csv binary
