@@ -29,15 +29,7 @@ This specification is the authoritative description of the project. Codex must r
     - report acceptance criteria as pass/fail;
     - stop and wait for approval before starting the next phase.
 
-### Recommended first Codex prompt
 
-```text
-Read EPL_MATCH_OUTCOME_PREDICTOR_SPEC.md completely. Inspect the repository.
-Implement Phase 0 only. Do not begin Phase 1. Run every Phase 0 validation,
-report each acceptance criterion as pass/fail, and stop for review.
-```
-
----
 
 ## 2. Product Definition
 
