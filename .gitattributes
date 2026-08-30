@@ -3,3 +3,6 @@
 
 # Raw source files must remain byte-identical to their downloaded contents.
 data/raw/football_data/*.csv binary
+
+# Deterministic processed tables use LF on every platform.
+data/processed/*.csv text eol=lf

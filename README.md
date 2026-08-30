@@ -4,10 +4,10 @@ A reproducible Python project for predicting English Premier League match
 outcomes as away-win, draw, and home-win probabilities using only information
 available before kickoff.
 
-The repository has completed **Phase 1: Football-Data Ingestion**. It contains
-the project structure, dependency setup, season configuration, immutable raw
-EPL match files, and their checksum manifest. Data cleaning, feature
-engineering, and model training have not been implemented.
+The repository has completed **Phase 2: Cleaning and Canonical Match Table**.
+It contains immutable raw EPL match files, their checksum manifest, explicit
+team-name mappings, and a validated one-row-per-fixture canonical dataset.
+Feature engineering and model training have not been implemented.
 
 ## Requirements
 
@@ -58,6 +58,19 @@ Valid cached files are not requested again. Source URLs, retrieval timestamps,
 row counts, and SHA-256 checksums are stored in `data/raw/manifest.json`.
 Football-Data CSVs are committed as binary files so Git cannot change their
 downloaded bytes through line-ending normalization.
+
+## Build the canonical match table
+
+Validate and clean every immutable raw season into the fixed canonical schema:
+
+```bash
+python -m src.clean_data
+```
+
+The command writes `data/processed/canonical_matches.csv` atomically and reports
+input rows, output rows, duplicate rows, missing shots, and unresolved teams.
+Team names are resolved exactly through `config/team_name_map.csv`; unknown
+provider names fail validation and are never matched fuzzily.
 
 ## Validate the project
 
