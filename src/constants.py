@@ -1,9 +1,32 @@
-"""Fixed labels, rolling settings, and Phase 3 output column contracts."""
+"""Fixed labels, seasons, rolling settings, and output column contracts."""
 
+RANDOM_SEED = 42
 ROLLING_WINDOW = 5
 ROLLING_MIN_PERIODS = 3
 
 TARGET_MAPPING = {"A": 0, "D": 1, "H": 2}
+CLASS_LABELS = (0, 1, 2)
+CLASS_NAMES = ("away_win", "draw", "home_win")
+
+TRAIN_SEASONS = (
+    "1011",
+    "1112",
+    "1213",
+    "1314",
+    "1415",
+    "1516",
+    "1617",
+    "1718",
+    "1819",
+    "1920",
+    "2021",
+    "2122",
+    "2223",
+)
+VALIDATION_SEASONS = ("2324",)
+TEST_SEASONS = ("2425",)
+HOLDOUT_SEASONS = ("2526",)
+SPLIT_ORDER = ("train", "validation", "test", "holdout")
 
 TEAM_HISTORY_COLUMNS = (
     "team_match_id",
@@ -71,4 +94,40 @@ CURRENT_MATCH_STAT_COLUMNS = frozenset(
         "away_possession",
         "points",
     }
+)
+
+SPLIT_MANIFEST_COLUMNS = ("match_id", "season", "date", "split")
+
+MODEL_RESULT_COLUMNS = (
+    "model_name",
+    "model_family",
+    "feature_set",
+    "split",
+    "row_count",
+    "log_loss",
+    "macro_f1",
+    "accuracy",
+    "best_iteration",
+    "parameters",
+    "precision_away_win",
+    "recall_away_win",
+    "f1_away_win",
+    "support_away_win",
+    "precision_draw",
+    "recall_draw",
+    "f1_draw",
+    "support_draw",
+    "precision_home_win",
+    "recall_home_win",
+    "f1_home_win",
+    "support_home_win",
+    "confusion_away_win_pred_away_win",
+    "confusion_away_win_pred_draw",
+    "confusion_away_win_pred_home_win",
+    "confusion_draw_pred_away_win",
+    "confusion_draw_pred_draw",
+    "confusion_draw_pred_home_win",
+    "confusion_home_win_pred_away_win",
+    "confusion_home_win_pred_draw",
+    "confusion_home_win_pred_home_win",
 )

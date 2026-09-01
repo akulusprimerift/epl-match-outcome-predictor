@@ -4,11 +4,11 @@ A reproducible Python project for predicting English Premier League match
 outcomes as away-win, draw, and home-win probabilities using only information
 available before kickoff.
 
-The repository has completed **Phase 3: Team History and Leakage-Safe
-Features**. It contains immutable raw EPL match files, their checksum manifest,
-explicit team-name mappings, a validated one-row-per-fixture canonical dataset,
-two team-perspective history rows per fixture, and a baseline pre-match feature
-table. Train/test splitting and model training have not been implemented.
+The repository has completed **Phase 4: Frozen Splits and Baseline Models**. It
+contains immutable raw EPL match files, their checksum manifest, explicit
+team-name mappings, leakage-safe pre-match features, frozen chronological split
+assignments, and majority/logistic-regression benchmark results. XGBoost has
+not been trained and the final 2025/26 holdout has not been evaluated.
 
 ## Requirements
 
@@ -94,6 +94,23 @@ treated as contemporaneous. Phase 3 retains all canonical fixtures, including
 cold starts, and records overall and venue-specific history counts. Missing
 rolling values remain unfilled in `model_dataset.csv`; the reusable imputation
 helpers are designed to fit medians on a future training split only.
+
+## Train the baseline models
+
+Build the frozen season splits and train the majority and logistic-regression
+benchmarks:
+
+```bash
+python -m src.train_baselines --feature-set baseline
+```
+
+The split policy is fixed in `config/model_config.json`: 2010/11–2022/23 for
+training, 2023/24 for validation, 2024/25 for testing, and 2025/26 as the final
+holdout. Median imputation is fitted on training rows only. The command writes
+the reproducible row assignments to `data/processed/split_manifest.csv`, the
+validation/test comparison to `reports/model_results.csv`, and local imputation
+state to `models/preprocessing.json`. It does not calculate or display holdout
+metrics.
 
 ## Validate the project
 

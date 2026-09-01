@@ -1,0 +1,63 @@
+{
+  "random_seed": 42,
+  "target_mapping": {
+    "A": 0,
+    "D": 1,
+    "H": 2
+  },
+  "rolling_window": 5,
+  "rolling_min_periods": 3,
+  "train_seasons": [
+    "1011",
+    "1112",
+    "1213",
+    "1314",
+    "1415",
+    "1516",
+    "1617",
+    "1718",
+    "1819",
+    "1920",
+    "2021",
+    "2122",
+    "2223"
+  ],
+  "validation_seasons": [
+    "2324"
+  ],
+  "test_seasons": [
+    "2425"
+  ],
+  "holdout_seasons": [
+    "2526"
+  ],
+  "possession_coverage_threshold": 0.95,
+  "max_macro_f1_drop": 0.02,
+  "feature_columns": [
+    "home_goals_for_avg_5",
+    "home_goals_against_avg_5",
+    "home_shots_avg_5",
+    "home_form_points_5",
+    "home_overall_ppg_5",
+    "home_venue_ppg_5",
+    "home_history_matches",
+    "home_venue_history_matches",
+    "away_goals_for_avg_5",
+    "away_goals_against_avg_5",
+    "away_shots_avg_5",
+    "away_form_points_5",
+    "away_overall_ppg_5",
+    "away_venue_ppg_5",
+    "away_history_matches",
+    "away_venue_history_matches",
+    "goals_scored_edge",
+    "defensive_edge",
+    "shots_edge",
+    "form_edge",
+    "venue_edge",
+    "history_edge"
+  ],
+  "selected_model": null,
+  "frozen_at_utc": null,
+  "git_commit": null
+}
