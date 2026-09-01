@@ -4,10 +4,11 @@ A reproducible Python project for predicting English Premier League match
 outcomes as away-win, draw, and home-win probabilities using only information
 available before kickoff.
 
-The repository has completed **Phase 2: Cleaning and Canonical Match Table**.
-It contains immutable raw EPL match files, their checksum manifest, explicit
-team-name mappings, and a validated one-row-per-fixture canonical dataset.
-Feature engineering and model training have not been implemented.
+The repository has completed **Phase 3: Team History and Leakage-Safe
+Features**. It contains immutable raw EPL match files, their checksum manifest,
+explicit team-name mappings, a validated one-row-per-fixture canonical dataset,
+two team-perspective history rows per fixture, and a baseline pre-match feature
+table. Train/test splitting and model training have not been implemented.
 
 ## Requirements
 
@@ -71,6 +72,28 @@ The command writes `data/processed/canonical_matches.csv` atomically and reports
 input rows, output rows, duplicate rows, missing shots, and unresolved teams.
 Team names are resolved exactly through `config/team_name_map.csv`; unknown
 provider names fail validation and are never matched fuzzily.
+
+## Build team history and baseline features
+
+Expand each canonical fixture into chronological home- and away-team history
+rows:
+
+```bash
+python -m src.build_history
+```
+
+Then build the non-possession baseline feature table:
+
+```bash
+python -m src.build_features --feature-set baseline
+```
+
+Every rolling statistic uses the previous five EPL matches, requires at least
+three observations, and excludes the current fixture. Same-date fixtures are
+treated as contemporaneous. Phase 3 retains all canonical fixtures, including
+cold starts, and records overall and venue-specific history counts. Missing
+rolling values remain unfilled in `model_dataset.csv`; the reusable imputation
+helpers are designed to fit medians on a future training split only.
 
 ## Validate the project
 
