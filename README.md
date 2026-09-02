@@ -4,11 +4,11 @@ A reproducible Python project for predicting English Premier League match
 outcomes as away-win, draw, and home-win probabilities using only information
 available before kickoff.
 
-The repository has completed **Phase 4: Frozen Splits and Baseline Models**. It
-contains immutable raw EPL match files, their checksum manifest, explicit
-team-name mappings, leakage-safe pre-match features, frozen chronological split
-assignments, and majority/logistic-regression benchmark results. XGBoost has
-not been trained and the final 2025/26 holdout has not been evaluated.
+The repository has completed **Phase 5: Model A XGBoost Baseline**. It contains
+immutable raw EPL match files, leakage-safe pre-match features, frozen
+chronological splits, majority/logistic-regression benchmarks, and a tuned
+long-history XGBoost model. Possession collection has not started and the final
+2025/26 holdout has not been evaluated.
 
 ## Requirements
 
@@ -111,6 +111,32 @@ the reproducible row assignments to `data/processed/split_manifest.csv`, the
 validation/test comparison to `reports/model_results.csv`, and local imputation
 state to `models/preprocessing.json`. It does not calculate or display holdout
 metrics.
+
+## Train and evaluate Model A
+
+Run the bounded, validation-only XGBoost search and evaluate the selected model
+on the 2024/25 test split:
+
+```bash
+python -m src.train_xgboost --model-name model_a --feature-set baseline
+```
+
+Reload the saved native XGBoost artifact and reproduce its test metrics without
+refitting:
+
+```bash
+python -m src.evaluate --model-name model_a --split test
+```
+
+The seven-candidate search uses only the approved parameter ranges in the
+specification. Model A achieved test log loss `1.03949`, compared with `1.08222`
+for the majority baseline and `1.03374` for logistic regression. It therefore
+passes the required majority benchmark but does not outperform logistic
+regression on test log loss. Detailed class metrics and all attempted settings
+are saved in `reports/model_results.csv` and `reports/tuning_results.csv`.
+Generated feature-importance values describe model gain and must not be read as
+causal effects. Model JSON and preprocessing metadata remain local generated
+artifacts under the repository's existing ignore policy.
 
 ## Validate the project
 

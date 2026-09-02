@@ -125,8 +125,13 @@ class BaselineReportTests(unittest.TestCase):
     def test_report_has_both_models_on_validation_and_test_only(self) -> None:
         self.assertTrue(self.path.is_file(), f"Missing model results: {self.path}")
         self.assertEqual(tuple(self.results.columns), MODEL_RESULT_COLUMNS)
-        self.assertEqual(len(self.results), 4)
-        observed = set(zip(self.results["model_name"], self.results["split"]))
+        baseline = self.results.loc[
+            self.results["model_name"].isin(
+                ["majority_baseline", "logistic_regression"]
+            )
+        ]
+        self.assertEqual(len(baseline), 4)
+        observed = set(zip(baseline["model_name"], baseline["split"]))
         self.assertEqual(
             observed,
             {
@@ -162,7 +167,11 @@ class BaselineReportTests(unittest.TestCase):
         splits = split_model_dataset(model, load_split_policy())
         models = fit_baseline_models(splits.train)
         rebuilt = evaluate_baseline_models(models, splits)
-        persisted = self.results.copy()
+        persisted = self.results.loc[
+            self.results["model_name"].isin(
+                ["majority_baseline", "logistic_regression"]
+            )
+        ].copy()
         persisted["best_iteration"] = persisted["best_iteration"].fillna("")
         pd.testing.assert_frame_equal(
             rebuilt.reset_index(drop=True),

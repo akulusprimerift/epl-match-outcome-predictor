@@ -57,6 +57,77 @@
     "venue_edge",
     "history_edge"
   ],
+  "model_a_search": {
+    "n_estimators": 500,
+    "early_stopping_rounds": 40,
+    "selection_metric": "validation_log_loss",
+    "tie_tolerance": 0.0001,
+    "candidates": [
+      {
+        "candidate_id": "starting",
+        "max_depth": 3,
+        "learning_rate": 0.03,
+        "min_child_weight": 3,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "reg_lambda": 2.0
+      },
+      {
+        "candidate_id": "shallow_slow",
+        "max_depth": 2,
+        "learning_rate": 0.02,
+        "min_child_weight": 3,
+        "subsample": 0.9,
+        "colsample_bytree": 0.9,
+        "reg_lambda": 2.0
+      },
+      {
+        "candidate_id": "shallow_standard",
+        "max_depth": 2,
+        "learning_rate": 0.03,
+        "min_child_weight": 3,
+        "subsample": 0.9,
+        "colsample_bytree": 0.9,
+        "reg_lambda": 2.0
+      },
+      {
+        "candidate_id": "depth_three_grid",
+        "max_depth": 3,
+        "learning_rate": 0.03,
+        "min_child_weight": 3,
+        "subsample": 0.9,
+        "colsample_bytree": 0.9,
+        "reg_lambda": 2.0
+      },
+      {
+        "candidate_id": "faster_regularized",
+        "max_depth": 3,
+        "learning_rate": 0.05,
+        "min_child_weight": 3,
+        "subsample": 0.75,
+        "colsample_bytree": 0.75,
+        "reg_lambda": 2.0
+      },
+      {
+        "candidate_id": "child_regularized",
+        "max_depth": 3,
+        "learning_rate": 0.03,
+        "min_child_weight": 5,
+        "subsample": 0.9,
+        "colsample_bytree": 0.75,
+        "reg_lambda": 5.0
+      },
+      {
+        "candidate_id": "deep_slow_regularized",
+        "max_depth": 4,
+        "learning_rate": 0.02,
+        "min_child_weight": 5,
+        "subsample": 0.75,
+        "colsample_bytree": 0.9,
+        "reg_lambda": 5.0
+      }
+    ]
+  },
   "selected_model": null,
   "frozen_at_utc": null,
   "git_commit": null

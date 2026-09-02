@@ -331,7 +331,8 @@ def build_preprocessing_record(
     }
 
 
-def _write_json_atomic(value: Mapping[str, object], path: Path) -> None:
+def write_json_atomic(value: Mapping[str, object], path: Path) -> None:
+    """Write a JSON object atomically with stable formatting."""
     path.parent.mkdir(parents=True, exist_ok=True)
     file_descriptor, temporary_name = tempfile.mkstemp(
         dir=path.parent,
@@ -352,7 +353,8 @@ def _write_json_atomic(value: Mapping[str, object], path: Path) -> None:
         temporary_path.unlink(missing_ok=True)
 
 
-def _write_results_atomic(results: pd.DataFrame, path: Path) -> None:
+def write_model_results_atomic(results: pd.DataFrame, path: Path) -> None:
+    """Write the shared model-comparison report atomically."""
     if tuple(results.columns) != MODEL_RESULT_COLUMNS:
         raise BaselineError("Model result columns do not match the report contract.")
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -404,8 +406,8 @@ def train_and_evaluate_baselines(
     results_path = project_root / "reports" / "model_results.csv"
     preprocessing_path = project_root / "models" / "preprocessing.json"
     write_split_manifest_atomic(manifest, manifest_path)
-    _write_results_atomic(results, results_path)
-    _write_json_atomic(preprocessing, preprocessing_path)
+    write_model_results_atomic(results, results_path)
+    write_json_atomic(preprocessing, preprocessing_path)
     return BaselineTrainingSummary(
         training_rows=len(splits.train),
         validation_rows=len(splits.validation),

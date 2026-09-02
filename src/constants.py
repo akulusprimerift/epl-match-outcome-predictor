@@ -131,3 +131,24 @@ MODEL_RESULT_COLUMNS = (
     "confusion_home_win_pred_draw",
     "confusion_home_win_pred_home_win",
 )
+
+TUNING_RESULT_COLUMNS = (
+    "candidate_id",
+    "selected",
+    "validation_log_loss",
+    "validation_macro_f1",
+    "validation_accuracy",
+    "best_iteration",
+    "objective",
+    "num_class",
+    "n_estimators",
+    "learning_rate",
+    "max_depth",
+    "min_child_weight",
+    "subsample",
+    "colsample_bytree",
+    "reg_lambda",
+    "eval_metric",
+    "early_stopping_rounds",
+    "random_state",
+)
