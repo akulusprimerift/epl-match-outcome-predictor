@@ -36,10 +36,14 @@ from src.constants import (
     FEATURE_COLUMNS,
     MODEL_RESULT_COLUMNS,
     RANDOM_SEED,
-    TRAIN_SEASONS,
     TUNING_RESULT_COLUMNS,
 )
 from src.evaluate import EvaluationError, predict_xgboost_probabilities
+from src.matched_experiment import (
+    MatchedExperimentError,
+    feature_columns_for_set,
+    prepare_matched_experiment,
+)
 from src.split_data import SplitError, load_split_policy, read_model_dataset, split_model_dataset
 from src.train_baselines import (
     BaselineError,
@@ -49,8 +53,13 @@ from src.train_baselines import (
 )
 
 
-SUPPORTED_MODEL_NAMES = ("model_a",)
-SUPPORTED_FEATURE_SETS = ("baseline",)
+SUPPORTED_MODEL_NAMES = ("model_a", "model_a_matched", "model_b")
+SUPPORTED_FEATURE_SETS = ("baseline", "baseline_matched", "possession")
+MODEL_FEATURE_SET = {
+    "model_a": "baseline",
+    "model_a_matched": "baseline_matched",
+    "model_b": "possession",
+}
 OBJECTIVE = "multi:softprob"
 NUM_CLASS = 3
 EVAL_METRIC = "mlogloss"
@@ -109,8 +118,8 @@ class XGBoostTrainingSummary:
     best_iteration: int
     validation_log_loss: float
     test_log_loss: float
-    majority_test_log_loss: float
-    logistic_test_log_loss: float
+    majority_test_log_loss: float | None
+    logistic_test_log_loss: float | None
     model_path: Path
     metadata_path: Path
     tuning_results_path: Path
@@ -258,6 +267,8 @@ def fit_candidate(
     validation_features: pd.DataFrame,
     validation_target: pd.Series,
     medians: Mapping[str, float],
+    feature_columns: Sequence[str] = FEATURE_COLUMNS,
+    feature_set: str = "baseline",
 ) -> CandidateOutcome:
     """Fit one candidate with validation-only early stopping and metrics."""
     parameters = _complete_parameters(candidate, search)
@@ -283,14 +294,14 @@ def fit_candidate(
         probabilities = predict_xgboost_probabilities(
             model,
             validation_frame,
-            feature_columns=FEATURE_COLUMNS,
+            feature_columns=feature_columns,
             medians=medians,
             best_iteration=best_iteration,
         )
         metrics = evaluate_probabilities(
             model_name="candidate",
             model_family="xgboost",
-            feature_set="baseline",
+            feature_set=feature_set,
             split_name="validation",
             frame=validation_frame,
             probabilities=probabilities,
@@ -338,6 +349,9 @@ def select_candidate(
 def build_tuning_results(
     outcomes: Sequence[CandidateOutcome],
     selected: CandidateOutcome,
+    *,
+    model_name: str = "model_a",
+    feature_set: str = "baseline",
 ) -> pd.DataFrame:
     """Create one auditable validation-only row per attempted configuration."""
     rows = []
@@ -345,6 +359,8 @@ def build_tuning_results(
         parameters = outcome.parameters
         rows.append(
             {
+                "model_name": model_name,
+                "feature_set": feature_set,
                 "candidate_id": outcome.candidate_id,
                 "selected": outcome.candidate_id == selected.candidate_id,
                 "validation_log_loss": outcome.validation_log_loss,
@@ -391,6 +407,32 @@ def _write_tuning_results_atomic(results: pd.DataFrame, path: Path) -> None:
         raise XGBoostTrainingError(f"Could not write tuning results {path}: {exc}") from exc
     finally:
         temporary_path.unlink(missing_ok=True)
+
+
+def _read_existing_tuning_results(path: Path) -> pd.DataFrame:
+    """Read validation-only tuning history for all completed model variants."""
+    try:
+        results = pd.read_csv(path)
+    except FileNotFoundError:
+        return pd.DataFrame(columns=TUNING_RESULT_COLUMNS)
+    except (
+        OSError,
+        UnicodeDecodeError,
+        pd.errors.EmptyDataError,
+        pd.errors.ParserError,
+    ) as exc:
+        raise XGBoostTrainingError(
+            f"Could not read tuning report {path}: {exc}"
+        ) from exc
+    if tuple(results.columns) != TUNING_RESULT_COLUMNS:
+        raise XGBoostTrainingError(
+            "Tuning report columns differ from the Phase 7 contract."
+        )
+    if any("test" in column or "holdout" in column for column in results.columns):
+        raise XGBoostTrainingError(
+            "Tuning report must contain validation-only selection metrics."
+        )
+    return results
 
 
 def _read_existing_model_results(path: Path) -> pd.DataFrame:
@@ -547,6 +589,8 @@ def _plot_confusion_matrix(
     actual: pd.Series,
     probabilities: np.ndarray,
     path: Path,
+    *,
+    model_name: str = "model_a",
 ) -> None:
     predicted = np.asarray(CLASS_LABELS)[probabilities.argmax(axis=1)]
     matrix = confusion_matrix(actual, predicted, labels=CLASS_LABELS)
@@ -558,6 +602,8 @@ def _plot_confusion_matrix(
     axis.set_xlabel("Predicted outcome")
     axis.set_ylabel("Actual outcome")
     axis.set_title("Model A confusion matrix — 2024/25 test")
+    display_name = model_name.replace("_", " ").title()
+    axis.set_title(f"{display_name} confusion matrix — 2024/25 test")
     threshold = matrix.max() / 2 if matrix.size else 0
     for row in range(3):
         for column in range(3):
@@ -574,18 +620,25 @@ def _plot_confusion_matrix(
     _save_figure_atomic(figure, path)
 
 
-def _plot_feature_importance(model: XGBClassifier, path: Path) -> None:
+def _plot_feature_importance(
+    model: XGBClassifier,
+    path: Path,
+    *,
+    feature_columns: Sequence[str] = FEATURE_COLUMNS,
+    model_name: str = "model_a",
+) -> None:
     booster = model.get_booster()
     gains = booster.get_score(importance_type="gain")
     importance = pd.Series(
-        {feature: float(gains.get(feature, 0.0)) for feature in FEATURE_COLUMNS},
+        {feature: float(gains.get(feature, 0.0)) for feature in feature_columns},
         dtype="float64",
     ).sort_values(ascending=False)
     top = importance.head(15).sort_values()
     figure, axis = plt.subplots(figsize=(9, 6))
     axis.barh(top.index, top.values, color="#1f77b4")
     axis.set_xlabel("Average gain")
-    axis.set_title("Model A feature importance (top 15)")
+    display_name = model_name.replace("_", " ").title()
+    axis.set_title(f"{display_name} feature importance (top 15)")
     axis.grid(axis="x", alpha=0.25)
     figure.tight_layout()
     _save_figure_atomic(figure, path)
@@ -594,53 +647,108 @@ def _plot_feature_importance(model: XGBClassifier, path: Path) -> None:
 def _build_preprocessing_record(
     training: pd.DataFrame,
     medians: Mapping[str, float],
+    *,
+    model_name: str = "model_a",
+    feature_set: str = "baseline",
+    feature_columns: Sequence[str] = FEATURE_COLUMNS,
 ) -> dict[str, object]:
     dates = pd.to_datetime(training["date"], format="%Y-%m-%d", errors="raise")
     return {
-        "feature_set": "baseline",
+        "feature_set": feature_set,
         "strategy": "median",
         "fitted_on_split": "train",
-        "used_by": ["logistic_regression", "model_a"],
-        "training_seasons": list(TRAIN_SEASONS),
+        "used_by": [model_name],
+        "training_seasons": list(
+            dict.fromkeys(training["season"].astype(str).tolist())
+        ),
         "training_match_count": len(training),
         "training_date_min": dates.min().date().isoformat(),
         "training_date_max": dates.max().date().isoformat(),
-        "feature_columns": list(FEATURE_COLUMNS),
-        "median_values": {feature: float(medians[feature]) for feature in FEATURE_COLUMNS},
+        "feature_columns": list(feature_columns),
+        "median_values": {
+            feature: float(medians[feature]) for feature in feature_columns
+        },
     }
 
 
-def train_model_a(
+def train_xgboost_model(
     model_name: str,
     feature_set: str,
     *,
     project_root: Path = PROJECT_ROOT,
 ) -> XGBoostTrainingSummary:
-    """Run the complete Phase 5 workflow without using holdout values."""
+    """Train one approved XGBoost variant without evaluating the holdout."""
     if model_name not in SUPPORTED_MODEL_NAMES:
-        raise XGBoostTrainingError("Phase 5 supports --model-name model_a only.")
+        raise XGBoostTrainingError(
+            f"Unsupported model name {model_name!r}."
+        )
     if feature_set not in SUPPORTED_FEATURE_SETS:
-        raise XGBoostTrainingError("Phase 5 supports --feature-set baseline only.")
+        raise XGBoostTrainingError(
+            f"Unsupported feature set {feature_set!r}."
+        )
+    expected_feature_set = MODEL_FEATURE_SET[model_name]
+    if feature_set != expected_feature_set:
+        raise XGBoostTrainingError(
+            f"{model_name} requires --feature-set {expected_feature_set}."
+        )
     project_root = project_root.resolve()
     config_path = project_root / "config" / "model_config.json"
     search = load_search_config(config_path)
-    policy = load_split_policy(config_path)
-    dataset = read_model_dataset(
-        project_root / "data" / "processed" / "model_dataset.csv"
-    )
-    splits = split_model_dataset(dataset, policy)
+    if model_name == "model_a":
+        policy = load_split_policy(config_path)
+        dataset = read_model_dataset(
+            project_root / "data" / "processed" / "model_dataset.csv"
+        )
+        splits = split_model_dataset(dataset, policy)
+        feature_columns = FEATURE_COLUMNS
+        matched_manifest_path: Path | None = None
+        model_b_period_start: str | None = None
+    else:
+        try:
+            artifacts = prepare_matched_experiment(
+                reset_freeze=model_name == "model_a_matched",
+                project_root=project_root,
+            )
+        except MatchedExperimentError as exc:
+            raise XGBoostTrainingError(str(exc)) from exc
+        splits = artifacts.splits
+        feature_columns = feature_columns_for_set(feature_set)
+        matched_manifest_path = artifacts.manifest_path
+        model_b_period_start = artifacts.model_b_period_start
+        if model_name == "model_b":
+            matched_metadata = _read_json_object(
+                project_root / "models" / "model_a_matched_metadata.json"
+            )
+            expected_manifest_hash = _sha256(artifacts.manifest_path)
+            if (
+                matched_metadata.get("model_name") != "model_a_matched"
+                or matched_metadata.get("feature_set") != "baseline_matched"
+                or matched_metadata.get("matched_split_manifest_sha256")
+                != expected_manifest_hash
+                or matched_metadata.get("holdout_evaluated") is not False
+            ):
+                raise XGBoostTrainingError(
+                    "Model A-Matched metadata does not match the frozen cohort; "
+                    "retrain model_a_matched before model_b."
+                )
+            if not (
+                project_root / "models" / "model_a_matched_xgb.json"
+            ).is_file():
+                raise XGBoostTrainingError(
+                    "Model A-Matched artifact is missing; train it before model_b."
+                )
 
     try:
-        medians = fit_training_medians(splits.train, FEATURE_COLUMNS)
+        medians = fit_training_medians(splits.train, feature_columns)
     except FeatureError as exc:
         raise XGBoostTrainingError(f"Could not fit training-only medians: {exc}") from exc
     try:
         training_features = apply_training_medians(
-            splits.train, medians, FEATURE_COLUMNS
-        ).loc[:, FEATURE_COLUMNS]
+            splits.train, medians, feature_columns
+        ).loc[:, feature_columns]
         validation_features = apply_training_medians(
-            splits.validation, medians, FEATURE_COLUMNS
-        ).loc[:, FEATURE_COLUMNS]
+            splits.validation, medians, feature_columns
+        ).loc[:, feature_columns]
     except FeatureError as exc:
         raise XGBoostTrainingError(f"Could not preprocess training splits: {exc}") from exc
     training_target = _target(splits.train)
@@ -658,23 +766,30 @@ def train_model_a(
                 validation_features=validation_features,
                 validation_target=validation_target,
                 medians=medians,
+                feature_columns=feature_columns,
+                feature_set=feature_set,
             )
         )
     selected = select_candidate(outcomes, tie_tolerance=search.tie_tolerance)
-    tuning_results = build_tuning_results(outcomes, selected)
+    tuning_results = build_tuning_results(
+        outcomes,
+        selected,
+        model_name=model_name,
+        feature_set=feature_set,
+    )
 
     try:
         validation_probabilities = predict_xgboost_probabilities(
             selected.model,
             splits.validation,
-            feature_columns=FEATURE_COLUMNS,
+            feature_columns=feature_columns,
             medians=medians,
             best_iteration=selected.best_iteration,
         )
         test_probabilities = predict_xgboost_probabilities(
             selected.model,
             splits.test,
-            feature_columns=FEATURE_COLUMNS,
+            feature_columns=feature_columns,
             medians=medians,
             best_iteration=selected.best_iteration,
         )
@@ -697,14 +812,19 @@ def train_model_a(
             parameters=selected.parameters,
         )
     except (EvaluationError, BaselineError) as exc:
-        raise XGBoostTrainingError(f"Selected Model A evaluation failed: {exc}") from exc
+        raise XGBoostTrainingError(
+            f"Selected {model_name} evaluation failed: {exc}"
+        ) from exc
     validation_result["best_iteration"] = selected.best_iteration
     test_result["best_iteration"] = selected.best_iteration
 
     results_path = project_root / "reports" / "model_results.csv"
     existing_results = _read_existing_model_results(results_path)
+    invalidated_models = {model_name}
+    if model_name == "model_a_matched":
+        invalidated_models.add("model_b")
     baseline_results = existing_results.loc[
-        ~existing_results["model_name"].eq(model_name)
+        ~existing_results["model_name"].isin(invalidated_models)
     ].copy()
     combined_results = pd.concat(
         [
@@ -714,25 +834,40 @@ def train_model_a(
         ignore_index=True,
     ).loc[:, MODEL_RESULT_COLUMNS]
     if "holdout" in set(combined_results["split"]):
-        raise XGBoostTrainingError("Holdout results are prohibited during Phase 5.")
+        raise XGBoostTrainingError("Holdout results are prohibited during Phase 7.")
 
-    majority_test_loss = _comparison_metric(
-        combined_results, "majority_baseline", "test", "log_loss"
-    )
-    logistic_test_loss = _comparison_metric(
-        combined_results, "logistic_regression", "test", "log_loss"
-    )
-    if float(test_result["log_loss"]) >= majority_test_loss:
-        raise XGBoostTrainingError(
-            "Selected Model A does not beat the majority test log loss."
+    majority_test_loss: float | None = None
+    logistic_test_loss: float | None = None
+    if model_name == "model_a":
+        majority_test_loss = _comparison_metric(
+            combined_results, "majority_baseline", "test", "log_loss"
         )
+        logistic_test_loss = _comparison_metric(
+            combined_results, "logistic_regression", "test", "log_loss"
+        )
+        if float(test_result["log_loss"]) >= majority_test_loss:
+            raise XGBoostTrainingError(
+                "Selected Model A does not beat the majority test log loss."
+            )
 
-    model_path = project_root / "models" / "model_a_xgb.json"
-    metadata_path = project_root / "models" / "model_metadata.json"
-    preprocessing_path = project_root / "models" / "preprocessing.json"
+    model_path = project_root / "models" / f"{model_name}_xgb.json"
+    if model_name == "model_a":
+        metadata_path = project_root / "models" / "model_metadata.json"
+        preprocessing_path = project_root / "models" / "preprocessing.json"
+    else:
+        metadata_path = project_root / "models" / f"{model_name}_metadata.json"
+        preprocessing_path = (
+            project_root / "models" / f"{model_name}_preprocessing.json"
+        )
     tuning_path = project_root / "reports" / "tuning_results.csv"
     _save_xgboost_model_atomic(selected.model, model_path)
-    preprocessing = _build_preprocessing_record(splits.train, medians)
+    preprocessing = _build_preprocessing_record(
+        splits.train,
+        medians,
+        model_name=model_name,
+        feature_set=feature_set,
+        feature_columns=feature_columns,
+    )
     write_json_atomic(preprocessing, preprocessing_path)
 
     git_commit, working_tree_dirty = _git_state(project_root)
@@ -741,7 +876,7 @@ def train_model_a(
         "model_name": model_name,
         "feature_set": feature_set,
         "trained_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "feature_columns": list(FEATURE_COLUMNS),
+        "feature_columns": list(feature_columns),
         "classes": list(CLASS_LABELS),
         "best_iteration": selected.best_iteration,
         "selected_candidate_id": selected.candidate_id,
@@ -749,11 +884,14 @@ def train_model_a(
         "training_match_count": len(splits.train),
         "validation_match_count": len(splits.validation),
         "test_match_count": len(splits.test),
+        "holdout_match_count": len(splits.holdout),
         "training_date_min": training_dates.min().date().isoformat(),
         "training_date_max": training_dates.max().date().isoformat(),
         "source_manifest_sha256": _sha256(project_root / "data" / "raw" / "manifest.json"),
         "split_manifest_sha256": _sha256(
-            project_root / "data" / "processed" / "split_manifest.csv"
+            matched_manifest_path
+            if matched_manifest_path is not None
+            else project_root / "data" / "processed" / "split_manifest.csv"
         ),
         "model_sha256": _sha256(model_path),
         "preprocessing_sha256": _sha256(preprocessing_path),
@@ -771,23 +909,50 @@ def train_model_a(
         },
         "holdout_evaluated": False,
     }
+    if matched_manifest_path is not None:
+        metadata["matched_split_manifest_sha256"] = _sha256(
+            matched_manifest_path
+        )
+        metadata["matched_dataset_sha256"] = _sha256(
+            project_root / "data" / "processed" / "matched_model_dataset.csv"
+        )
+        metadata["model_b_period_start"] = model_b_period_start
     write_json_atomic(metadata, metadata_path)
-    _write_tuning_results_atomic(tuning_results, tuning_path)
+    existing_tuning = _read_existing_tuning_results(tuning_path)
+    invalidated_tuning_models = {model_name}
+    if model_name == "model_a_matched":
+        invalidated_tuning_models.add("model_b")
+    combined_tuning = pd.concat(
+        [
+            existing_tuning.loc[
+                ~existing_tuning["model_name"].isin(
+                    invalidated_tuning_models
+                )
+            ],
+            tuning_results,
+        ],
+        ignore_index=True,
+    ).loc[:, TUNING_RESULT_COLUMNS]
+    _write_tuning_results_atomic(combined_tuning, tuning_path)
     write_model_results_atomic(combined_results, results_path)
-    _plot_class_distribution(
-        splits.train,
-        splits.validation,
-        splits.test,
-        project_root / "reports" / "class_distribution.png",
-    )
+    if model_name == "model_a":
+        _plot_class_distribution(
+            splits.train,
+            splits.validation,
+            splits.test,
+            project_root / "reports" / "class_distribution.png",
+        )
     _plot_confusion_matrix(
         _target(splits.test),
         test_probabilities,
-        project_root / "reports" / "confusion_matrix_model_a.png",
+        project_root / "reports" / f"confusion_matrix_{model_name}.png",
+        model_name=model_name,
     )
     _plot_feature_importance(
         selected.model,
-        project_root / "reports" / "feature_importance_model_a.png",
+        project_root / "reports" / f"feature_importance_{model_name}.png",
+        feature_columns=feature_columns,
+        model_name=model_name,
     )
     return XGBoostTrainingSummary(
         selected_candidate_id=selected.candidate_id,
@@ -804,10 +969,26 @@ def train_model_a(
     )
 
 
+def train_model_a(
+    model_name: str,
+    feature_set: str,
+    *,
+    project_root: Path = PROJECT_ROOT,
+) -> XGBoostTrainingSummary:
+    """Backward-compatible entry point for the completed Phase 5 workflow."""
+    if model_name != "model_a" or feature_set != "baseline":
+        raise XGBoostTrainingError(
+            "train_model_a requires model_a with the baseline feature set."
+        )
+    return train_xgboost_model(
+        model_name, feature_set, project_root=project_root
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
-    """Build the Phase 5 XGBoost training CLI parser."""
+    """Build the Phase 5/7 XGBoost training CLI parser."""
     parser = argparse.ArgumentParser(
-        description="Tune and train the long-history EPL Model A classifier."
+        description="Tune and train an approved EPL XGBoost model variant."
     )
     parser.add_argument("--model-name", required=True, choices=SUPPORTED_MODEL_NAMES)
     parser.add_argument("--feature-set", required=True, choices=SUPPORTED_FEATURE_SETS)
@@ -815,11 +996,13 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Run Phase 5 training while keeping the final holdout unopened."""
+    """Train an approved variant while keeping the final holdout unopened."""
     arguments = build_parser().parse_args(argv)
     try:
-        summary = train_model_a(arguments.model_name, arguments.feature_set)
-    except (XGBoostTrainingError, SplitError) as exc:
+        summary = train_xgboost_model(
+            arguments.model_name, arguments.feature_set
+        )
+    except (XGBoostTrainingError, SplitError, MatchedExperimentError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
     print(f"attempted_candidates={summary.attempted_candidates}")
@@ -827,8 +1010,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(f"best_iteration={summary.best_iteration}")
     print(f"validation_log_loss={summary.validation_log_loss:.12f}")
     print(f"test_log_loss={summary.test_log_loss:.12f}")
-    print(f"majority_test_log_loss={summary.majority_test_log_loss:.12f}")
-    print(f"logistic_test_log_loss={summary.logistic_test_log_loss:.12f}")
+    if summary.majority_test_log_loss is not None:
+        print(
+            f"majority_test_log_loss={summary.majority_test_log_loss:.12f}"
+        )
+    if summary.logistic_test_log_loss is not None:
+        print(
+            f"logistic_test_log_loss={summary.logistic_test_log_loss:.12f}"
+        )
     print("evaluated_splits=validation,test")
     print("holdout_evaluated=False")
     print(f"model={summary.model_path.relative_to(PROJECT_ROOT).as_posix()}")

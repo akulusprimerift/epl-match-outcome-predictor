@@ -15,7 +15,17 @@ from xgboost.core import XGBoostError
 
 from src.build_features import FeatureError, apply_training_medians
 from src.clean_data import PROJECT_ROOT
-from src.constants import CLASS_LABELS, FEATURE_COLUMNS
+from src.constants import (
+    CLASS_LABELS,
+    FEATURE_COLUMNS,
+    POSSESSION_FEATURE_COLUMNS,
+)
+from src.matched_experiment import (
+    MatchedExperimentError,
+    feature_columns_for_set,
+    read_matched_model_dataset,
+    split_matched_dataset,
+)
 from src.split_data import SplitError, load_split_policy, read_model_dataset, split_model_dataset
 from src.train_baselines import (
     BaselineError,
@@ -24,7 +34,7 @@ from src.train_baselines import (
 )
 
 
-SUPPORTED_MODELS = ("model_a",)
+SUPPORTED_MODELS = ("model_a", "model_a_matched", "model_b")
 SUPPORTED_SPLITS = ("validation", "test")
 
 
@@ -69,19 +79,31 @@ def validate_model_metadata(
             f"Metadata model name {metadata['model_name']!r} does not match "
             f"{expected_model_name!r}."
         )
-    if metadata["feature_set"] != "baseline":
-        raise EvaluationError("Phase 5 Model A must use the baseline feature set.")
+    expected_feature_sets = {
+        "model_a": "baseline",
+        "model_a_matched": "baseline_matched",
+        "model_b": "possession",
+    }
+    expected_feature_set = expected_feature_sets.get(expected_model_name)
+    if metadata["feature_set"] != expected_feature_set:
+        raise EvaluationError(
+            f"{expected_model_name} must use feature set {expected_feature_set}."
+        )
+    try:
+        expected_feature_columns = feature_columns_for_set(expected_feature_set)
+    except MatchedExperimentError as exc:
+        raise EvaluationError(str(exc)) from exc
     if not isinstance(metadata["feature_columns"], list) or tuple(
         metadata["feature_columns"]
-    ) != FEATURE_COLUMNS:
-        raise EvaluationError("Saved feature order differs from FEATURE_COLUMNS.")
+    ) != expected_feature_columns:
+        raise EvaluationError("Saved feature order differs from its feature-set contract.")
     if not isinstance(metadata["classes"], list) or tuple(metadata["classes"]) != CLASS_LABELS:
         raise EvaluationError("Saved class mapping differs from 0/1/2.")
     best_iteration = metadata["best_iteration"]
     if not isinstance(best_iteration, int) or best_iteration < 0:
         raise EvaluationError("Saved best_iteration must be a nonnegative integer.")
     if metadata["holdout_evaluated"] is not False:
-        raise EvaluationError("Phase 5 metadata must state that holdout is unopened.")
+        raise EvaluationError("Model metadata must state that holdout is unopened.")
     if not isinstance(metadata["parameters"], dict):
         raise EvaluationError("Saved model parameters must be a JSON object.")
 
@@ -136,8 +158,11 @@ def predict_xgboost_probabilities(
     best_iteration: int,
 ) -> np.ndarray:
     """Impute and return probabilities mapped through model.classes_."""
-    if tuple(feature_columns) != FEATURE_COLUMNS:
-        raise EvaluationError("Prediction feature order differs from FEATURE_COLUMNS.")
+    approved_orders = {FEATURE_COLUMNS, POSSESSION_FEATURE_COLUMNS}
+    if tuple(feature_columns) not in approved_orders:
+        raise EvaluationError(
+            "Prediction feature order differs from every approved feature contract."
+        )
     try:
         transformed = apply_training_medians(frame, medians, feature_columns)
     except FeatureError as exc:
@@ -180,26 +205,61 @@ def evaluate_saved_model(
     """Evaluate one saved model on validation or test without refitting."""
     if model_name not in SUPPORTED_MODELS:
         raise EvaluationError(
-            f"Unsupported model {model_name!r}; Phase 5 supports model_a only."
+            f"Unsupported model {model_name!r}."
         )
     if split_name not in SUPPORTED_SPLITS:
         raise EvaluationError(
-            "Phase 5 evaluation supports validation or test only; holdout is unopened."
+            "Evaluation supports validation or test only; holdout is unopened."
         )
     project_root = project_root.resolve()
-    metadata = load_json_object(project_root / "models" / "model_metadata.json")
+    metadata_name = (
+        "model_metadata.json"
+        if model_name == "model_a"
+        else f"{model_name}_metadata.json"
+    )
+    preprocessing_name = (
+        "preprocessing.json"
+        if model_name == "model_a"
+        else f"{model_name}_preprocessing.json"
+    )
+    metadata = load_json_object(project_root / "models" / metadata_name)
     validate_model_metadata(metadata, expected_model_name=model_name)
     feature_columns = tuple(str(value) for value in metadata["feature_columns"])
     medians = load_preprocessing(
-        project_root / "models" / "preprocessing.json",
+        project_root / "models" / preprocessing_name,
         feature_columns=feature_columns,
     )
     model = load_xgboost_model(project_root / "models" / f"{model_name}_xgb.json")
-    dataset = read_model_dataset(
-        project_root / "data" / "processed" / "model_dataset.csv"
-    )
     policy = load_split_policy(project_root / "config" / "model_config.json")
-    splits = split_model_dataset(dataset, policy)
+    if model_name == "model_a":
+        dataset = read_model_dataset(
+            project_root / "data" / "processed" / "model_dataset.csv"
+        )
+        splits = split_model_dataset(dataset, policy)
+    else:
+        try:
+            dataset = read_matched_model_dataset(
+                project_root
+                / "data"
+                / "processed"
+                / "matched_model_dataset.csv"
+            )
+            splits = split_matched_dataset(dataset, policy)
+        except MatchedExperimentError as exc:
+            raise EvaluationError(str(exc)) from exc
+    count_fields = {
+        "training_match_count": len(splits.train),
+        "validation_match_count": len(splits.validation),
+        "test_match_count": len(splits.test),
+        "holdout_match_count": len(splits.holdout),
+    }
+    for field, expected_count in count_fields.items():
+        if field == "holdout_match_count" and model_name == "model_a" and field not in metadata:
+            continue
+        if metadata.get(field) != expected_count:
+            raise EvaluationError(
+                f"Saved {field} differs from the current frozen split."
+            )
     frame = splits.by_name()[split_name]
     probabilities = predict_xgboost_probabilities(
         model,

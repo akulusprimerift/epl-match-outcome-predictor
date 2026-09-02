@@ -75,20 +75,22 @@ class ApprovedSearchTests(unittest.TestCase):
 
     def test_tuning_report_records_every_candidate_without_future_metrics(self) -> None:
         results = pd.read_csv(TUNING_RESULTS_PATH)
+        model_a_results = results.loc[results["model_name"].eq("model_a")]
         search = load_search_config(CONFIG_PATH)
         self.assertEqual(tuple(results.columns), TUNING_RESULT_COLUMNS)
-        self.assertEqual(len(results), len(search.candidates))
-        self.assertEqual(results["candidate_id"].tolist(), [
+        self.assertEqual(len(model_a_results), len(search.candidates))
+        self.assertEqual(model_a_results["candidate_id"].tolist(), [
             candidate["candidate_id"] for candidate in search.candidates
         ])
-        self.assertEqual(int(results["selected"].sum()), 1)
+        self.assertEqual(int(model_a_results["selected"].sum()), 1)
+        self.assertEqual(set(model_a_results["feature_set"]), {"baseline"})
         self.assertFalse(
             any("test" in column or "holdout" in column for column in results.columns)
         )
-        selected = results.loc[results["selected"]].iloc[0]
+        selected = model_a_results.loc[model_a_results["selected"]].iloc[0]
         self.assertLessEqual(
             selected["validation_log_loss"],
-            results["validation_log_loss"].min() + search.tie_tolerance,
+            model_a_results["validation_log_loss"].min() + search.tie_tolerance,
         )
 
 

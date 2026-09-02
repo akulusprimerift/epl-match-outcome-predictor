@@ -4,12 +4,14 @@ A reproducible Python project for predicting English Premier League match
 outcomes as away-win, draw, and home-win probabilities using only information
 available before kickoff.
 
-The repository has completed **Phase 6: Possession Collection and Join**. It contains
+The repository has completed **Phase 6: Possession Collection and Join** and has
+the **Phase 7 matched-experiment workflow implemented**. It contains
 immutable raw EPL match files, leakage-safe pre-match features, frozen
 chronological splits, majority/logistic-regression benchmarks, and a tuned
 long-history XGBoost model, plus a resumable API-Football possession enrichment
-pipeline. No API response data is fabricated or committed, Model B has not been
-trained, and the final 2025/26 holdout has not been evaluated.
+pipeline. No API response data is fabricated or committed. The current 0%
+possession coverage does not support a matched cohort, so Model A-Matched and
+Model B have not been trained. The final 2025/26 holdout has not been evaluated.
 
 ## Requirements
 
@@ -168,6 +170,26 @@ The rebuild writes `reports/possession_unmatched.csv`,
 Coverage is reported by season and team against the configured 95% threshold.
 With no local API caches, the report correctly declares no valid Model B period;
 missing possession remains missing rather than becoming zero.
+
+## Run the matched possession experiment
+
+After possession has reached the configured 95% season threshold, train the two
+models on one frozen match-ID cohort:
+
+```bash
+python -m src.train_xgboost --model-name model_a_matched --feature-set baseline_matched
+python -m src.train_xgboost --model-name model_b --feature-set possession
+python -m src.compare_models --models model_a_matched model_b
+```
+
+Model A-Matched uses only the baseline columns. Model B uses those exact rows
+and columns plus `home_possession_avg_5`, `away_possession_avg_5`, and
+`possession_edge`. Both variants independently use the approved validation-only
+search, while test metrics are reserved for their final comparison. The command
+refuses to train when train, validation, test, or holdout coverage is empty and
+never evaluates holdout metrics. When both models exist, the comparison writes
+`reports/possession_experiment.md` and applies the declared log-loss, macro-F1,
+integrity, and probability checks without selecting a production candidate.
 
 ## Validate the project
 
