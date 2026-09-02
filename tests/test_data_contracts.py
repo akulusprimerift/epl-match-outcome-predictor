@@ -119,6 +119,12 @@ class TeamMappingContractTests(unittest.TestCase):
         self.assertEqual(identity.name, "Manchester United")
         self.assertEqual(identity.slug, "manchester-united")
 
+        api_identity = resolve_team_name(
+            "api_football", "Manchester United", self.mappings
+        )
+        self.assertEqual(api_identity.name, "Manchester United")
+        self.assertEqual(api_identity.slug, "manchester-united")
+
     def test_unknown_team_mapping_is_rejected(self) -> None:
         with self.assertRaisesRegex(TeamMappingError, "Unmapped team name"):
             resolve_team_name("football_data", "Unknown FC", self.mappings)
@@ -226,9 +232,14 @@ class CanonicalRepositoryContractTests(unittest.TestCase):
             "2425": 380,
             "2526": 380,
         })
-        self.assertTrue(frame["home_possession"].isna().all())
-        self.assertTrue(frame["away_possession"].isna().all())
-        self.assertTrue(frame["api_fixture_id"].isna().all())
+        for column in ("home_possession", "away_possession"):
+            provided = frame[column].dropna()
+            self.assertTrue(provided.between(0, 100).all())
+        possession_provided = frame["home_possession"].notna() | frame[
+            "away_possession"
+        ].notna()
+        self.assertTrue(frame.loc[possession_provided, "api_fixture_id"].notna().all())
+        self.assertTrue(frame["api_fixture_id"].dropna().is_unique)
 
         mappings = load_team_name_map()
         canonical_identities = {

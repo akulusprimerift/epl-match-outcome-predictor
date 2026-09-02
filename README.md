@@ -4,11 +4,12 @@ A reproducible Python project for predicting English Premier League match
 outcomes as away-win, draw, and home-win probabilities using only information
 available before kickoff.
 
-The repository has completed **Phase 5: Model A XGBoost Baseline**. It contains
+The repository has completed **Phase 6: Possession Collection and Join**. It contains
 immutable raw EPL match files, leakage-safe pre-match features, frozen
 chronological splits, majority/logistic-regression benchmarks, and a tuned
-long-history XGBoost model. Possession collection has not started and the final
-2025/26 holdout has not been evaluated.
+long-history XGBoost model, plus a resumable API-Football possession enrichment
+pipeline. No API response data is fabricated or committed, Model B has not been
+trained, and the final 2025/26 holdout has not been evaluated.
 
 ## Requirements
 
@@ -137,6 +138,36 @@ are saved in `reports/model_results.csv` and `reports/tuning_results.csv`.
 Generated feature-importance values describe model gain and must not be read as
 causal effects. Model JSON and preprocessing metadata remain local generated
 artifacts under the repository's existing ignore policy.
+
+## Collect and join possession
+
+Set `API_FOOTBALL_KEY` in the local environment, then collect one configured
+EPL season within a strict request budget:
+
+```bash
+# PowerShell: $env:API_FOOTBALL_KEY = "your-local-key"
+# macOS/Linux: export API_FOOTBALL_KEY="your-local-key"
+python -m src.collect_possession --season 2025 --max-requests 90
+```
+
+The collector requests only API-Football league `39` fixtures with status `FT`,
+caches the exact fixture and statistics responses, records their checksums and
+endpoints in `data/raw/manifest.json`, and skips verified caches on rerun. If the
+request budget is reached, rerun the same command to resume. The key is sent only
+as a request header and is never written to the manifest or command output.
+
+Rebuild the canonical table and join every available cache by exact season,
+date, home team, and away team:
+
+```bash
+python -m src.clean_data --include-possession
+```
+
+The rebuild writes `reports/possession_unmatched.csv`,
+`reports/possession_ambiguous.csv`, and `reports/possession_coverage.csv`.
+Coverage is reported by season and team against the configured 95% threshold.
+With no local API caches, the report correctly declares no valid Model B period;
+missing possession remains missing rather than becoming zero.
 
 ## Validate the project
 
