@@ -78,6 +78,13 @@ The probabilities must be based only on information available before kickoff.
 
 These may be considered only after all phases in this document are complete.
 
+Phase 12 scope exception explicitly approved by the user: add a local browser
+interface to choose an illustrative fixture, predict its outcome, and explain
+the frozen prediction using actual gathered statistics. The user selected local
+operation rather than a hosted website. This exception permits a loopback-only
+HTTP interface, not a public deployment, live collection, new model, changed
+data contract, changed split, or revised selection rule.
+
 ---
 
 ## 3. Fixed Technical Decisions
@@ -1343,10 +1350,24 @@ Make the repository understandable and runnable by another developer.
 
 Verify the repository is ready for portfolio and résumé use.
 
+### User-approved local interface extension
+
+- Choose distinct canonical historical EPL teams and a supported future date.
+- Use the unchanged frozen Model B prediction path and probability encoding.
+- Display all three outcomes, uncertainty, and snapshot/staleness warnings.
+- Explain fixture-specific model influences, verified against the prediction,
+  without presenting feature attribution as causal proof.
+- Show actual rolling statistics and previous-season possession with provenance;
+  distinguish missing observations from frozen training-median replacements.
+- Run locally with the existing dependency lock. No publication or live feed.
+- Keep new interface code and its tests outside the frozen modeling inventory.
+
 ### Required validation
 
 ```bash
 python -m unittest discover -s tests -v
+python -m unittest discover -s scripts/tests -v
+python -m unittest discover -s interface/tests -v
 python -m src.download_data --help
 python -m src.clean_data --help
 python -m src.build_features --help
@@ -1358,18 +1379,23 @@ git status --short
 
 ### Final checklist
 
-- [ ] All automated tests pass.
-- [ ] Raw sources are reproducible.
-- [ ] Leakage tests pass.
-- [ ] Frozen season splits are documented.
-- [ ] Baselines are reported.
-- [ ] Model selection follows the declared rule.
-- [ ] Holdout was opened only after freezing.
-- [ ] Prediction CLI returns normalized probabilities.
-- [ ] README commands run successfully.
-- [ ] No secrets are tracked.
-- [ ] No non-EPL data enters the pipeline.
-- [ ] Results and limitations are stated honestly.
+- [x] All automated tests pass.
+- [x] Raw sources are reproducible from the immutable manifested snapshot.
+- [x] Leakage tests pass.
+- [x] Frozen season splits are documented.
+- [x] Baselines are reported.
+- [x] Model selection follows the declared rule.
+- [x] Holdout was opened only after freezing.
+- [x] Prediction CLI returns normalized probabilities.
+- [x] README commands run successfully in the documented Windows environment.
+- [x] No secrets are tracked.
+- [x] No non-EPL data enters the pipeline.
+- [x] Results and limitations are stated honestly.
+- [x] Local browser prediction, evidence, and error handling tested.
+
+Acceptance evidence and portability/upstream limitations are recorded in
+`reports/phase12_quality_gate.md`. The isolated historical replay does not
+replace the current frozen artifacts or repeat final-holdout inference.
 
 ### Definition of done
 
@@ -1490,7 +1516,7 @@ Minimum fields:
 
 ## 17. Current Next Action
 
-Phases 0 through 11 are complete. The validated SofaScore export contains 180
+Phases 0 through 12 are complete. The validated SofaScore export contains 180
 team-season rows across 2017/18 through 2025/26, all with possession values and
 38 recorded matches. Model B passed all declared Phase 7 incremental-value
 rules on the frozen matched test cohort.
@@ -1510,6 +1536,9 @@ Phase 11 provides the completed README, data dictionary, exact sample prediction
 and clean-clone reproduction guide. The intentionally ignored model files can
 be transferred with a checksum-verified artifact bundle; the documented workflow
 does not retrain the frozen model or repeat holdout inference. A replacement
-Python environment uses the unchanged dependency lock. Phase 12 is the next
-action and requires a separate user request. No modeling change may be optimized
-against the now-opened 2025/26 holdout.
+Python environment uses the unchanged dependency lock. Phase 12 adds the
+explicitly requested local browser interface, verified model explanations and
+source-backed statistics. Its quality gate includes the complete isolated
+pre-freeze reproduction, automated and browser tests, and preservation of the
+original freeze. No next modeling phase is implied: any new modeling work needs
+separate approval and must not be optimized against the opened 2025/26 holdout.

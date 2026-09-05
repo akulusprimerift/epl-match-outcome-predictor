@@ -5,8 +5,8 @@ and home-win probabilities from information available before kickoff. It
 demonstrates chronological feature engineering, leakage tests, a controlled
 possession experiment, and a frozen XGBoost prediction command.
 
-Phases 0–11 are complete; Phase 12 (the final portfolio quality gate) is not yet
-started. This is an offline research snapshot, not a live service or betting
+Phases 0–12 are complete, including the final quality gate and a user-requested
+local browser interface. This is an offline research snapshot, not a live service or betting
 recommendation. Stored matches end on **2026-05-24**.
 
 ## Start here
@@ -19,6 +19,8 @@ recommendation. Stored matches end on **2026-05-24**.
   illustrative Arsenal–Chelsea request, including stale-data warnings.
 - [Engineering specification](EPL_MATCH_OUTCOME_PREDICTOR_SPEC.md): fixed
   contracts, selection rules, and phase boundaries.
+- [Phase 12 quality gate](reports/phase12_quality_gate.md): reproduction,
+  interface tests, acceptance criteria, and remaining limitations.
 
 A fresh clone contains the data and reports but **not the nine model JSON
 artifacts**, which remain intentionally ignored. Obtain a checksum-verified
@@ -68,6 +70,53 @@ python -m src.evaluate --model-name selected --split holdout --frozen
 The example is a user-supplied hypothetical fixture, **not a verified schedule**.
 Prediction returns one JSON object and writes no files. The holdout command now
 verifies and returns saved results; it does not repeat holdout inference.
+
+## Try the local browser interface
+
+With the same environment active and frozen artifacts restored, run:
+
+```bash
+python -m interface.server
+```
+
+Open [EPL Match Lab](http://127.0.0.1:8765/). Choose a home team, away team, and
+date, then select **Predict & explain**. To avoid activating PowerShell, use:
+
+```powershell
+.\.venv\runtime\Scripts\python.exe -m interface.server
+```
+
+Keep that terminal running; Ctrl+C stops the interface. If the port is occupied,
+use `python -m interface.server --port 8766` and open the printed address.
+Nothing is published, no account or API key is required, and predictions write
+no data or model files. This server binds to this computer only; it is not a
+public production server and must not be exposed through a tunnel or proxy.
+
+The page provides:
+
+- All three probabilities, with the leading outcome described as an estimate.
+- Fixture-specific, signed XGBoost TreeSHAP influences grouped into seven
+  readable factors. These use the frozen model's exact prediction tree range;
+  the three-class contributions must reconstruct its probabilities or the
+  request fails. Contributions are raw-score differences, not probability points.
+- Observed recent points, goals scored/conceded, shots, venue form, and
+  previous-season possession, plus the underlying recent/venue matches and
+  provider links. Missing observations and training-median replacements are
+  identified separately. Entire-history counts are not five-match counts.
+- Stale-history warnings and the model's poor final-holdout draw recall.
+
+The factors explain this fitted model, **not why a team is certain to win**.
+Even a worse raw statistic can contribute positively in the fitted trees;
+correlated inputs, home/away roles, and the learned baseline also matter.
+The strongest grouped influences appear first. A winning outcome is compared
+with the opponent's win; a leading draw is compared with the strongest win.
+
+The team list contains historical EPL clubs, not a verified current league list.
+Dates must be after 2026-05-24 and supported by the preceding-season snapshot.
+Selecting a later date does not fetch new matches or check the schedule.
+The UI preserves the existing CLI output and all frozen modeling contracts.
+An optional page-scoped `predict_epl_match` browser-agent tool uses the same
+visible prediction action; ordinary controls work without that capability.
 
 ## Architecture
 
@@ -209,6 +258,7 @@ possession or any other feature on winning.
 | Location | Purpose |
 |---|---|
 | `src/` | Data pipelines, frozen evaluation, and prediction |
+| `interface/` | Local browser server, auditable explanation layer, static UI, and 23 independent tests |
 | `config/` | Team mapping, season policy, model freeze, phase extension records |
 | `data/raw/` | Immutable, manifested inputs (tracked CSV snapshot) |
 | `data/processed/` | Canonical fixtures, history, features and split manifests |
@@ -225,10 +275,13 @@ With the locked environment active and the model bundle restored:
 ```bash
 python -m unittest discover -s tests -v
 python -m unittest discover -s scripts/tests -v
+python -m unittest discover -s interface/tests -v
 python scripts/validate_docs.py
 python -m src.freeze_model --verify
 git status --short
 ```
 
-Phase 11 validation and its tested scope are recorded in the
-[reproduction guide](docs/REPRODUCIBILITY.md). Phase 12 requires a separate request.
+Phase 11 validation is recorded in the [reproduction guide](docs/REPRODUCIBILITY.md).
+The [Phase 12 report](reports/phase12_quality_gate.md) records all 174 passing
+tests, browser checks, and the isolated historical replay. The original freeze
+and final-holdout reports remain unchanged.

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Compare EPL teams using a frozen prediction model and inspect the historical evidence.">
+  <title>EPL Match Lab</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="masthead"><div class="brand"><span class="brand-mark">EPL</span><span>Match Lab</span></div><span class="local-badge">LOCAL SNAPSHOT · NO LIVE FEED</span></header>
+  <main>
+    <section class="intro"><p class="eyebrow">MATCH OUTCOME PREDICTOR</p><h1>Pick the match.<br>Explore the evidence.</h1><p>Compare two clubs, see all three outcomes, and inspect the data behind the model’s decision.</p></section>
+    <section class="workspace" aria-label="Match selection">
+      <form id="match-form">
+        <div class="field"><label for="home">Home team</label><select id="home" name="home" required disabled><option value="">Loading teams…</option></select></div>
+        <button id="swap" class="swap" type="button" aria-label="Swap home and away teams" disabled>⇄</button>
+        <div class="field"><label for="away">Away team</label><select id="away" name="away" required disabled><option value="">Loading teams…</option></select></div>
+        <div class="field"><label for="date">Match date</label><input id="date" name="date" type="date" required disabled></div>
+        <button id="predict" class="primary" type="submit" disabled>Predict & explain <span aria-hidden="true">↗</span></button>
+      </form>
+      <p id="snapshot" class="snapshot">Checking the frozen snapshot…</p>
+    </section>
+    <p id="status" role="status" aria-live="polite"></p>
+    <p id="error" class="error" role="alert" hidden></p>
+    <section id="empty" class="empty"><span class="empty-number">01 / 03</span><h2>Three outcomes. One transparent view.</h2><p>Your comparison will include win and draw probabilities, matchup-specific model influences, and the actual recent fixtures used in the statistics.</p><p class="muted">Club selection does not verify a scheduled fixture or current EPL membership.</p></section>
+    <section id="results" hidden tabindex="-1" aria-label="Prediction and supporting evidence"></section>
+    <footer><span>EPL only. Frozen model. No retraining.</span><a href="#match-form">Choose another match ↑</a></footer>
+  </main>
+</body>
+</html>

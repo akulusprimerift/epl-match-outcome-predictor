@@ -229,7 +229,14 @@ also reproduced without refitting. No real holdout inference was repeated.
 The full historical training recipe and macOS/Linux setup are documented from
 the existing code but are not re-executed as part of Phase 11. Bit-for-bit
 reproduction across arbitrary machines is not promised. Phase 12 is a separate
-final quality gate, not implicitly completed by these checks.
+final quality gate, not implicitly completed by those Phase 11 checks. Its
+subsequent execution, including the complete isolated historical recipe, is
+recorded in the [Phase 12 report](../reports/phase12_quality_gate.md).
+
+For the added local interface, run `python -m interface.server` from the current
+checkout after restoring the frozen bundle. Test it with
+`python -m unittest discover -s interface/tests -v`. These additions introduce
+no new dependencies and do not change the frozen modeling source/test inventory.
 
 | Symptom | Safe next step |
 |---|---|
