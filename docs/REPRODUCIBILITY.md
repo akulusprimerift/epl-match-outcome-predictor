@@ -208,11 +208,23 @@ for this rehearsal. It does not copy ignored source-tree models automatically.
 
 ## Validation scope and troubleshooting
 
-Phase 11 checks the 147 modeling tests, four artifact-transfer tests, exact
-sample output, documentation links/metric values, CLI help, and freeze integrity.
-The replacement Python environment is installed from the unchanged lock and
-passes `pip check`. A local clean clone is checked separately after bundle
-restoration. No model is retrained and no holdout inference is repeated.
+On 2026-09-05, Phase 11 passed the 147 modeling tests, four artifact-transfer
+tests, exact sample comparison, documentation links/metric checks, CLI help for
+all 11 command modules, and freeze integrity. The replacement Python 3.12
+environment installed the unchanged lock and passed `pip check`.
+
+An independent local clone of revision `2eb07b9` restored all nine model files,
+passed the same 151 tests and documentation checks, reproduced the exact sample,
+and returned the saved holdout with `reused_saved_results=true`. Its working
+tree remained clean. The original checkout's three XGBoost test metrics were
+also reproduced without refitting. No real holdout inference was repeated.
+
+| Phase 11 acceptance criterion | Result and evidence |
+|---|---|
+| New developer can follow the README | PASS: independent-clone restoration rehearsed; required owner-supplied bundle is explicit |
+| Documented commands are valid | PASS: current setup, transfer, evaluation, prediction and checks executed; historical CLI contracts inspected without retraining |
+| No credentials or machine-specific absolute paths in new documentation | PASS: automated scan plus review of README, guides and sample |
+| Reported metrics match saved reports | PASS: five test rows and final holdout table checked; exact sample JSON regenerated and compared |
 
 The full historical training recipe and macOS/Linux setup are documented from
 the existing code but are not re-executed as part of Phase 11. Bit-for-bit

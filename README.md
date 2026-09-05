@@ -52,8 +52,8 @@ python -m pip check
 ```
 
 Use an installed Python 3.12 executable if the launcher command is unavailable.
-The nested environment leaves an older `.venv` intact. On this working copy,
-the replacement environment is already installed. If PowerShell activation is
+The nested environment leaves an older `.venv` intact. Phase 11 validation used
+this replacement environment; it is not included in Git. If PowerShell activation is
 restricted, invoke `.\.venv\runtime\Scripts\python.exe` directly; no execution-policy
 change is necessary.
 
