@@ -6,3 +6,10 @@ data/raw/football_data/*.csv binary
 
 # Deterministic processed tables use LF on every platform.
 data/processed/*.csv text eol=lf
+
+# Frozen artifact hashes cover exact bytes, including in fresh Windows clones.
+data/raw/sofascore/*.csv binary
+data/raw/manifest.json text eol=lf
+reports/*.csv text eol=lf
+reports/*.json text eol=lf
+reports/*.md text eol=lf

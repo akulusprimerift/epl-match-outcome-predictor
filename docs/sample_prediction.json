@@ -1,0 +1,20 @@
+{
+  "away_team": "Chelsea",
+  "feature_as_of": "2026-05-24",
+  "home_team": "Arsenal",
+  "match_date": "2026-09-12",
+  "model_name": "model_b",
+  "model_version": "f3b9ac19656dc1a8218176250f182406895b4fa0bcff0cb3a8432a18cf79a530",
+  "predicted_outcome": "home_win",
+  "probabilities": {
+    "away_win": 0.11845555901527405,
+    "draw": 0.17082545161247253,
+    "home_win": 0.7107189893722534
+  },
+  "warnings": [
+    "Stale history for Arsenal: latest stored EPL match is 2026-05-24 (111 days before the requested fixture).",
+    "Stale history for Chelsea: latest stored EPL match is 2026-05-24 (111 days before the requested fixture).",
+    "User-supplied fixture: the local snapshot does not verify its schedule or current EPL membership.",
+    "feature_as_of is the latest stored completed match date; an exact completion timestamp is unavailable."
+  ]
+}

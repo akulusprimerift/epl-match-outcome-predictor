@@ -1,344 +1,234 @@
 # EPL Match Outcome Predictor
 
-A reproducible Python project for predicting English Premier League match
-outcomes as away-win, draw, and home-win probabilities using only information
-available before kickoff.
+An **English Premier League-only** Python project that estimates away-win, draw,
+and home-win probabilities from information available before kickoff. It
+demonstrates chronological feature engineering, leakage tests, a controlled
+possession experiment, and a frozen XGBoost prediction command.
 
-The repository has completed Phases 0 through 10 and contains a validated
-**SofaScore team-season possession dataset**. It contains
-immutable raw EPL match files, leakage-safe pre-match features, frozen
-chronological splits, majority/logistic-regression benchmarks, and a tuned
-long-history XGBoost model. The coverage-matched baseline and possession model
-have also been trained and compared. Model B is the frozen final candidate.
-The final 2025/26 holdout has been evaluated once without retraining. Results
-and limitations are recorded in `reports/final_holdout.md`.
+Phases 0–11 are complete; Phase 12 (the final portfolio quality gate) is not yet
+started. This is an offline research snapshot, not a live service or betting
+recommendation. Stored matches end on **2026-05-24**.
 
-## Requirements
+## Start here
 
-- Python 3.11 or later
-- pandas
-- scikit-learn
-- XGBoost
-- matplotlib
+- [Reproduction guide](docs/REPRODUCIBILITY.md): setup, clean-clone restoration,
+  historical pipeline commands, and troubleshooting.
+- [Data dictionary](docs/DATA_DICTIONARY.md): schemas, feature order, missingness,
+  units, labels, and provenance.
+- [Sample prediction](docs/sample_prediction.json): actual output for an
+  illustrative Arsenal–Chelsea request, including stale-data warnings.
+- [Engineering specification](EPL_MATCH_OUTCOME_PREDICTOR_SPEC.md): fixed
+  contracts, selection rules, and phase boundaries.
 
-## Setup
+A fresh clone contains the data and reports but **not the nine model JSON
+artifacts**, which remain intentionally ignored. Obtain a checksum-verified
+frozen-model bundle from the project owner before attempting inference.
+[The guide](docs/REPRODUCIBILITY.md) explains how to export and restore it.
+There is no public artifact release supplied by this repository; a code-only
+clone cannot reproduce frozen predictions by itself.
 
-On Windows PowerShell:
+## Setup and quick use
+
+Use Git and **Python 3.12** for the tested locked environment. The application
+specification permits Python 3.11+, but this dependency lock was validated on
+Python 3.12, not every supported interpreter or operating system.
+
+Windows PowerShell, from the project root:
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+py -3.12 -m venv .venv/runtime
+.\.venv\runtime\Scripts\Activate.ps1
+python -m pip install -r requirements.lock.txt
+python -m pip check
 ```
 
-On macOS or Linux:
+macOS/Linux equivalent (not exercised in the Windows validation):
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+python3.12 -m venv .venv/runtime
+source .venv/runtime/bin/activate
+python -m pip install -r requirements.lock.txt
+python -m pip check
 ```
 
-Exact versions used for the bootstrapped environment are recorded in
-`requirements.lock.txt`.
+Use an installed Python 3.12 executable if the launcher command is unavailable.
+The nested environment leaves an older `.venv` intact. On this working copy,
+the replacement environment is already installed. If PowerShell activation is
+restricted, invoke `.\.venv\runtime\Scripts\python.exe` directly; no execution-policy
+change is necessary.
 
-The training commands below describe the pre-freeze workflow. Once Phase 8 is
-frozen, training entry points refuse to overwrite its artifacts. Preserve the
-local model JSON files under `models/`; the existing ignore policy keeps them
-out of Git, while the freeze records their exact checksums.
-
-## Download EPL history
-
-Download every configured season from 2010/11 through 2025/26:
-
-```bash
-python -m src.download_data --all
-```
-
-Or download one configured season:
-
-```bash
-python -m src.download_data --season 2425
-```
-
-Valid cached files are not requested again. Source URLs, retrieval timestamps,
-row counts, and SHA-256 checksums are stored in `data/raw/manifest.json`.
-Football-Data CSVs are committed as binary files so Git cannot change their
-downloaded bytes through line-ending normalization.
-
-## Build the canonical match table
-
-Validate and clean every immutable raw season into the fixed canonical schema:
-
-```bash
-python -m src.clean_data
-```
-
-The command writes `data/processed/canonical_matches.csv` atomically and reports
-input rows, output rows, duplicate rows, missing shots, and unresolved teams.
-Team names are resolved exactly through `config/team_name_map.csv`; unknown
-provider names fail validation and are never matched fuzzily.
-
-## Build team history and baseline features
-
-Expand each canonical fixture into chronological home- and away-team history
-rows:
-
-```bash
-python -m src.build_history
-```
-
-Then build the non-possession baseline feature table:
-
-```bash
-python -m src.build_features --feature-set baseline
-```
-
-Every rolling statistic uses the previous five EPL matches, requires at least
-three observations, and excludes the current fixture. Same-date fixtures are
-treated as contemporaneous. Phase 3 retains all canonical fixtures, including
-cold starts, and records overall and venue-specific history counts. Missing
-rolling values remain unfilled in `model_dataset.csv`; the reusable imputation
-helpers are designed to fit medians on a future training split only.
-
-## Train the baseline models
-
-Build the frozen season splits and train the majority and logistic-regression
-benchmarks:
-
-```bash
-python -m src.train_baselines --feature-set baseline
-```
-
-The split policy is fixed in `config/model_config.json`: 2010/11–2022/23 for
-training, 2023/24 for validation, 2024/25 for testing, and 2025/26 as the final
-holdout. Median imputation is fitted on training rows only. The command writes
-the reproducible row assignments to `data/processed/split_manifest.csv`, the
-validation/test comparison to `reports/model_results.csv`, and local imputation
-state to `models/preprocessing.json`. It does not calculate or display holdout
-metrics.
-
-## Train and evaluate Model A
-
-Run the bounded, validation-only XGBoost search and evaluate the selected model
-on the 2024/25 test split:
-
-```bash
-python -m src.train_xgboost --model-name model_a --feature-set baseline
-```
-
-Reload the saved native XGBoost artifact and reproduce its test metrics without
-refitting:
-
-```bash
-python -m src.evaluate --model-name model_a --split test
-```
-
-The seven-candidate search uses only the approved parameter ranges in the
-specification. Model A achieved test log loss `1.03949`, compared with `1.08222`
-for the majority baseline and `1.03374` for logistic regression. It therefore
-passes the required majority benchmark but does not outperform logistic
-regression on test log loss. Detailed class metrics and all attempted settings
-are saved in `reports/model_results.csv` and `reports/tuning_results.csv`.
-Generated feature-importance values describe model gain and must not be read as
-causal effects. Model JSON and preprocessing metadata remain local generated
-artifacts under the repository's existing ignore policy.
-
-## Collect team-season possession averages
-
-No key or account is required. Collect one SofaScore EPL season:
-
-```bash
-python -m src.collect_possession --season 2024 --max-requests 25
-```
-
-Or collect the default 2017/18 through 2025/26 range with a strict request
-budget:
-
-```bash
-python -m src.collect_possession --all --max-requests 250
-```
-
-The collector can discover SofaScore season IDs, get the teams from each
-season's standings, and retrieve one `averageBallPossession` value per team.
-Because SofaScore currently returns HTTP 403 to this environment's automated
-JSON requests, the repository also accepts the manifested SofaScore web export
-already stored under `data/raw/sofascore/`. Raw inputs are checksummed in
-`data/raw/manifest.json`, never overwritten, and skipped on rerun. The current
-export contains all 20 EPL teams for every source season from 2017/18 through
-2025/26, with 38 matches recorded for every team-season.
-
-The deterministic output is `data/processed/team_season_possession.csv`, with
-coverage recorded in `reports/possession_coverage.csv`. Each source-season row
-also names its following target season. A 2023/24 team average may therefore be
-used for 2024/25 fixtures, but never for fixtures within 2023/24 itself. This
-one-season lag is mandatory to prevent future leakage.
-
-## Run the matched possession experiment
-
-The validated source-season coverage is 100%, so the first eligible Model B
-target season is 2018/19. Phase 7 joins the lagged team-season table and can be
-reproduced with these commands:
-
-```bash
-python -m src.train_xgboost --model-name model_a_matched --feature-set baseline_matched
-python -m src.train_xgboost --model-name model_b --feature-set possession
-python -m src.compare_models --models model_a_matched model_b
-```
-
-Model A-Matched will use only the baseline columns. Model B will use those exact
-rows and columns plus `home_previous_season_possession`,
-`away_previous_season_possession`, and `possession_edge`. Both variants must use
-identical match IDs, and neither may use a final possession average from the
-fixture's own season.
-
-The completed comparison used 1,900 training, 380 validation, and 380 test
-fixtures for each model. Model B lowered test log loss from `1.047621` to
-`1.031919`, increased test macro F1 from `0.330596` to `0.366448`, and increased
-test accuracy from `0.450000` to `0.471053`. It therefore passes every declared
-Phase 7 incremental-value rule. Full results are in
-`reports/possession_experiment.md`.
-
-## Model selection freeze
-
-Phase 8 selected Model B under Section 10.6: its test log loss (`1.031919`) is
-lower than Model A (`1.039492`) and Model A-Matched (`1.047621`), and it has the
-highest macro F1 of those three candidates. The comparison uses the same 380
-test fixtures. The test advantage is modest; only the selected candidate was
-subsequently evaluated on the final holdout, so no holdout comparison against
-other candidates is claimed. The rationale is recorded in
-`reports/model_selection.md`.
-
-`config/model_config.json` records the selection and its timestamp. Its
-`frozen_candidate` section contains the exact 25-feature order, training-only
-preprocessing values, parameters, best iteration, labels, prediction schema,
-and checksums for the implementation, saved models, source data, and reports.
-The existing top-level `feature_columns` remains the baseline contract.
-
-Verify the freeze without running inference or changing files:
+Once the frozen artifacts have been restored:
 
 ```bash
 python -m src.freeze_model --verify
-```
-
-The creation command is `python -m src.freeze_model`; if already frozen, it
-only verifies the existing record. Implementation hashes normalize CRLF to LF;
-raw data and artifact checksums use exact bytes. The `git_commit` field records
-the pre-freeze parent, and the commit containing the configuration is the freeze
-commit. The configuration also has its own checksum, excluding that checksum
-field itself.
-
-## Final holdout evaluation (Phase 9)
-
-Model B was evaluated on all 380 fixtures from 2025/26:
-
-| Metric | 2024/25 test | 2025/26 final holdout |
-|---|---:|---:|
-| Log loss (lower is better) | 1.031919 | 1.075037 |
-| Macro F1 | 0.366448 | 0.353288 |
-| Accuracy | 47.11% | 46.32% |
-
-Log loss worsened by 4.18%; accuracy dropped by 0.79 percentage points.
-Draw recognition is weak: just 2 of 104 draws were correctly classified
-(1.92% draw recall). This is a sequential pre-match backtest using earlier
-completed matches, not a preseason forecast. Possession for these fixtures
-comes from 2024/25; final 2025/26 averages are not prediction features.
-The result does not justify retuning against this now-opened holdout.
-
-The pre-evaluation suite passed all 132 tests. Probability, leakage, frozen
-artifact, and one-time evaluation checks are included. The evaluated model,
-feature order, parameters, split membership, and training-only medians remain
-unchanged.
-
-The approved one-time command now verifies and returns the saved result:
-
-```bash
+python -m src.predict --home "Arsenal" --away "Chelsea" --date 2026-09-12
 python -m src.evaluate --model-name selected --split holdout --frozen
 ```
 
-The command requires a clean working tree and a committed evaluation protocol
-in `config/phase9_protocol.json`. This separate record preserves the original
-Phase 8 configuration and all model, preprocessing, data, feature-building, and
-training checksums. It permits only the evaluation/verification adapters and
-their tests; the original inference functions are also checked against the
-Phase 8 commit. The model is loaded, never refitted.
+The example is a user-supplied hypothetical fixture, **not a verified schedule**.
+Prediction returns one JSON object and writes no files. The holdout command now
+verifies and returns saved results; it does not repeat holdout inference.
 
-Outputs are `reports/final_holdout_results.csv`, a final confusion matrix,
-per-fixture probabilities, and `reports/final_holdout.md` comparing test and
-holdout results. A start record prevents repeat or concurrent inference; the
-completion receipt checksums every final output. Repeating the same command
-only verifies and returns saved results. An interrupted attempt remains locked:
-preserve its files for investigation, and do not delete the record or rerun
-inference. A fresh evaluation requires a new future holdout, not retuning on
-2025/26.
+## Architecture
 
-The original model metadata and Phase 8 report remain immutable historical
-records. Current completion status is stored in
-`reports/final_holdout_receipt.json` and reported by the freeze verifier.
-
-## Upcoming-fixture prediction (Phase 10)
-
-With the project dependencies installed, request a prediction using exact
-canonical team names:
-
-```bash
-python -m src.predict --home "Arsenal" --away "Chelsea" --date 2026-09-12
-python -m src.predict --help
+```text
+Immutable EPL CSVs -> canonical fixtures -> two team-history rows per fixture
+                                      -> strictly prior rolling features
+SofaScore team-season averages        -> previous-season possession join
+                                      -> fixed chronological splits
+                                      -> training-only medians + XGBoost
+                                      -> frozen artifacts -> JSON prediction
 ```
 
-This is an illustrative user-supplied fixture, not a verified scheduled match.
-The command prints one JSON object containing `home_team`, `away_team`,
-`match_date`, `model_name`, `model_version`, `probabilities` (away win, draw,
-home win), `predicted_outcome`, `feature_as_of`, and `warnings`. The model
-version is the unchanged Phase 8 freeze-record checksum. Errors go to standard
-error with a nonzero exit status. No files are written or downloaded.
+There is one model row per fixture, oriented toward the home team. Labels are
+away win = 0, draw = 1, home win = 2. Rolling windows use the last five completed
+EPL matches, with at least three observations, excluding the current date.
+Windows carry across EPL seasons. Separate home/away venue histories represent
+home advantage; missing values use medians fitted on training data only.
 
-The predictor loads the saved Model B and its training-only medians, builds
-the exact frozen 25-feature order, and maps probabilities through the model's
-class labels. It never refits the model or preprocessing. The prediction
-extension is recorded in `config/phase10_protocol.json`; the original Phase 8
-configuration, Phase 9 protocol, holdout reports, and training/feature-building
-implementations remain unchanged. The existing holdout command still returns
-its saved result without repeating inference.
+Model A uses 22 non-possession features and the longer training history.
+Model A-Matched uses those same features on the possession-eligible cohort.
+Model B adds three columns: home and away previous-season possession and their
+difference. Only A-Matched versus B isolates the incremental possession signal.
 
-Important limits:
+| Split | Seasons | Model A fixtures | Matched A / B fixtures |
+|---|---|---:|---:|
+| Training | 2010/11–2022/23; matched begins 2018/19 | 4940 | 1900 |
+| Validation | 2023/24 | 380 | 380 |
+| Test | 2024/25 | 380 | 380 |
+| Final holdout | 2025/26 | 380 | 380 |
 
-- Only completed EPL fixtures strictly before the requested date contribute.
-  Dates on or before the latest stored match date are rejected; this command
-  does not offer historical backtesting.
-- The current snapshot ends on **2026-05-24**. Team histories more than 14 days
-  old produce warnings; this warning threshold does not change predictions.
-  The example September prediction therefore uses stale history, not live form.
-- For upcoming date-only requests, July 1 marks the new season. A 2026/27
-  fixture uses completed 2025/26 possession. The required preceding season must
-  have its complete 380-match history and 20-team possession table, with the
-  frozen coverage threshold satisfied. Later unsupported seasons fail clearly.
-- Missing prior EPL history or possession produces explicit warnings and uses
-  frozen training medians. Older possession seasons and other leagues are never
-  substituted. History counts remain available to the model.
-- Exact canonical names are required; for example, use `Manchester United`,
-  not `Man United`. Matching a historical EPL club does not verify its current
-  league membership or whether the fixture is scheduled.
-- `feature_as_of` is a match date, not a fabricated completion timestamp.
+Validation controls the seven-candidate bounded search and early stopping.
+Test data selects the final candidate under the predeclared log-loss/F1 rules.
+The holdout was evaluated once only after the model-selection freeze.
 
-Phase 10 acceptance passed all 147 tests, including feature parity with the
-existing pipeline, strict-date exclusion, deterministic normalized output,
-unknown-team errors, cold starts, and frozen-artifact checks. Documentation
-and reproducibility work beyond this command remains Phase 11.
+## Data sources and request limits
 
-## Validate the project
+Football-Data supplies 6,080 EPL fixtures across 2010/11–2025/26, identified by
+division `E0`. SofaScore supplies 180 team-season possession rows across
+2017/18–2025/26: 20 clubs per season, each with 38 recorded matches. Provider
+URLs, retrieval metadata and exact checksums are retained in
+`data/raw/manifest.json` and the possession export.
 
-With the virtual environment active:
+The SofaScore endpoints returned HTTP 403 during collection, so this snapshot
+uses the manifested export of the same website statistics. No live request is
+needed to use the existing data. Do not interpret that historical failure as a
+claim about current service availability.
+
+A final average for season N can only enter fixtures in N+1. Thus 2025/26
+holdout features use 2024/25 possession, while a 2026/27 prediction can use
+2025/26 possession. Match-level possession is not required.
+
+SofaScore needs no key in this implementation. Its `--max-requests` setting is
+a **local request budget**, not a promised free-tier allowance. Attempts and
+fallback-host requests consume the budget; valid caches/export rows do not.
+HTTP 429 honors a numeric Retry-After with a minimum two-second wait; other
+transient failures use bounded retries, and 403/404 advances to the configured
+fallback host. Budget exhaustion preserves completed caches for a later resume.
+
+The retained API-Football collector is a **legacy, unused alternative**. It
+requires a key, stops at its local budget or an observed zero remaining quota,
+and stops on HTTP 429/quota errors. There is no automatic daily wake-up or
+hard-coded promise of an account's free-plan quota. Never commit credentials
+or substitute that collector's data into this frozen run.
+
+## Results and model decision
+
+Saved 2024/25 test results (380 identical test fixtures; lower log loss is better):
+
+| Model | Log loss | Macro F1 | Accuracy |
+|---|---:|---:|---:|
+| majority_baseline | 1.082216 | 0.193146 | 0.407895 |
+| logistic_regression | 1.033743 | 0.366356 | 0.489474 |
+| model_a | 1.039492 | 0.348426 | 0.471053 |
+| model_a_matched | 1.047621 | 0.330596 | 0.450000 |
+| model_b | 1.031919 | 0.366448 | 0.471053 |
+
+Model B improves matched-baseline log loss by 0.015702 and passes the 0.02
+macro-F1-drop guardrail. It also has the lowest test log loss and highest macro
+F1 among the three XGBoost selection candidates. Logistic regression remains
+a strong benchmark and has higher test accuracy, but it is not in the fixed
+Section 10.6 final-candidate set.
+
+The advantage is modest and does not establish statistical significance or
+causation. See the [possession experiment](reports/possession_experiment.md),
+[pre-holdout selection decision](reports/model_selection.md), and
+[complete metrics](reports/model_results.csv).
+
+| Model B metric | 2024/25 test | 2025/26 final holdout |
+|---|---:|---:|
+| Log loss | 1.031919 | 1.075037 |
+| Macro F1 | 0.366448 | 0.353288 |
+| Accuracy | 47.11% | 46.32% |
+
+Holdout log loss worsened by 4.18%; accuracy declined by 0.79 percentage
+points. Only **2 of 104 draws** were correctly classified (1.92% draw recall).
+Only Model B was evaluated on holdout: no holdout comparison or possession
+uplift against other models is claimed. [Final report](reports/final_holdout.md).
+
+![Final holdout confusion matrix](reports/confusion_matrix_final_holdout.png)
+
+![Model B feature importance](reports/feature_importance_model_b.png)
+
+Feature importance describes fitted-model gain, not the causal effect of
+possession or any other feature on winning.
+
+## Frozen state and limitations
+
+- The original configuration, source data, feature definitions, medians,
+  parameters, and holdout outputs remain unchanged. Model B uses saved best
+  iteration 267, i.e. prediction iterations [0, 268).
+- The Phase 8 configuration and Phase 9/10 extension protocols anchor the
+  implementation to Git history. Do not use shallow/source-only exports for
+  verification, rewrite these records, or delete holdout receipts to rerun it.
+  The old metadata's `holdout_evaluated=false` describes its historical creation
+  state; the final receipt records completion.
+- This is a sequential pre-match backtest, not a simultaneous preseason forecast.
+  Earlier completed matches in the same holdout season can update rolling features.
+- Only EPL history is allowed. New or returning clubs can have missing or very
+  old EPL history. Training medians and history counts handle missingness but
+  cannot recreate information that is absent.
+- For forecasts, histories older than 14 days produce warnings. The example
+  uses a May 24 snapshot, 111 days before September 12. It is not live form.
+- Dates on or before the latest source match are rejected. Upcoming date-only
+  requests use July 1 as the season boundary; this is not a historical-season
+  classifier for unusual schedules such as the delayed 2019/20 season.
+- Unknown/noncanonical names, identical teams, and unsupported future seasons
+  fail clearly. A requested season needs the complete preceding EPL season
+  and its possession table meeting the frozen coverage threshold.
+- The command does not verify scheduling or current league membership.
+  `feature_as_of` is a match date; exact completion timestamps are unavailable.
+- No injuries, lineups, player events, other leagues, bookmaker odds, or
+  current-match results enter the feature vector. Probabilities are not a
+  guarantee of performance or evidence of betting profitability.
+- Changing the model after viewing holdout needs a new future holdout season.
+  Nothing in the reproduction instructions authorizes retuning on 2025/26.
+
+## Repository map
+
+| Location | Purpose |
+|---|---|
+| `src/` | Data pipelines, frozen evaluation, and prediction |
+| `config/` | Team mapping, season policy, model freeze, phase extension records |
+| `data/raw/` | Immutable, manifested inputs (tracked CSV snapshot) |
+| `data/processed/` | Canonical fixtures, history, features and split manifests |
+| `models/` | Nine local/ignored frozen model, preprocessing and metadata files |
+| `reports/` | Tracked metrics, charts, selection and one-time holdout audit |
+| `tests/` | 147 frozen modeling, leakage, integrity and prediction tests |
+| `scripts/` | Artifact transfer and documentation checks; no model changes |
+| `docs/` | Data dictionary, reproduction guide and exact sample JSON |
+
+## Validation
+
+With the locked environment active and the model bundle restored:
 
 ```bash
-python --version
-python -c "import pandas, sklearn, xgboost, matplotlib"
 python -m unittest discover -s tests -v
+python -m unittest discover -s scripts/tests -v
+python scripts/validate_docs.py
+python -m src.freeze_model --verify
 git status --short
 ```
 
-See `EPL_MATCH_OUTCOME_PREDICTOR_SPEC.md` for the authoritative phased
-implementation plan. Later phases must not be started without explicit
-approval.
+Phase 11 validation and its tested scope are recorded in the
+[reproduction guide](docs/REPRODUCIBILITY.md). Phase 12 requires a separate request.

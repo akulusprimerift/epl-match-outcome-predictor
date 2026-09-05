@@ -1490,7 +1490,7 @@ Minimum fields:
 
 ## 17. Current Next Action
 
-Phases 0 through 10 are complete. The validated SofaScore export contains 180
+Phases 0 through 11 are complete. The validated SofaScore export contains 180
 team-season rows across 2017/18 through 2025/26, all with possession values and
 38 recorded matches. Model B passed all declared Phase 7 incremental-value
 rules on the frozen matched test cohort.
@@ -1506,5 +1506,10 @@ Phase 10 implements `python -m src.predict --home "Arsenal" --away "Chelsea"
 feature definitions, rejects historical/same-date requests, and warns about
 cold starts, stale history, and unverified fixture scheduling. Its separate
 implementation protocol leaves the pre-holdout records untouched.
-Phase 11 is the next action and requires a separate user request. No modeling
-change may be optimized against the now-opened 2025/26 holdout.
+Phase 11 provides the completed README, data dictionary, exact sample prediction,
+and clean-clone reproduction guide. The intentionally ignored model files can
+be transferred with a checksum-verified artifact bundle; the documented workflow
+does not retrain the frozen model or repeat holdout inference. A replacement
+Python environment uses the unchanged dependency lock. Phase 12 is the next
+action and requires a separate user request. No modeling change may be optimized
+against the now-opened 2025/26 holdout.
