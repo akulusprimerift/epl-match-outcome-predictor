@@ -19,6 +19,7 @@ dist/
 .DS_Store
 Thumbs.db
 
-# Cached API responses and generated model artifacts
+# Cached external responses and generated model artifacts
 data/raw/api_football/*.json
+data/raw/sofascore/*.json
 models/*.json

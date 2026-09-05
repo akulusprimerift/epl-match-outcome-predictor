@@ -26,7 +26,7 @@ class ProjectStructureTests(unittest.TestCase):
         required_directories = (
             "config",
             "data/raw/football_data",
-            "data/raw/api_football",
+            "data/raw/sofascore",
             "data/processed",
             "models",
             "reports",

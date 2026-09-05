@@ -32,6 +32,9 @@
     "2526"
   ],
   "possession_coverage_threshold": 0.95,
+  "possession_source": "sofascore_team_season_average",
+  "possession_tournament_id": 17,
+  "possession_feature_lag_seasons": 1,
   "max_macro_f1_drop": 0.02,
   "feature_columns": [
     "home_goals_for_avg_5",

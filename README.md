@@ -4,14 +4,14 @@ A reproducible Python project for predicting English Premier League match
 outcomes as away-win, draw, and home-win probabilities using only information
 available before kickoff.
 
-The repository has completed **Phase 6: Possession Collection and Join** and has
-the **Phase 7 matched-experiment workflow implemented**. It contains
+The repository has completed Phases 0 through 5 and contains a revised
+**Phase 6 SofaScore team-season possession collector**. It contains
 immutable raw EPL match files, leakage-safe pre-match features, frozen
 chronological splits, majority/logistic-regression benchmarks, and a tuned
-long-history XGBoost model, plus a resumable API-Football possession enrichment
-pipeline. No API response data is fabricated or committed. The current 0%
-possession coverage does not support a matched cohort, so Model A-Matched and
-Model B have not been trained. The final 2025/26 holdout has not been evaluated.
+long-history XGBoost model. Model A-Matched and Model B have not been trained,
+and the final 2025/26 holdout has not been evaluated. The existing Phase 7
+implementation still represents the old match-level design and must be revised
+before it is run against the new team-season table.
 
 ## Requirements
 
@@ -141,40 +141,38 @@ Generated feature-importance values describe model gain and must not be read as
 causal effects. Model JSON and preprocessing metadata remain local generated
 artifacts under the repository's existing ignore policy.
 
-## Collect and join possession
+## Collect team-season possession averages
 
-Set `API_FOOTBALL_KEY` in the local environment, then collect one configured
-EPL season within a strict request budget:
-
-```bash
-# PowerShell: $env:API_FOOTBALL_KEY = "your-local-key"
-# macOS/Linux: export API_FOOTBALL_KEY="your-local-key"
-python -m src.collect_possession --season 2025 --max-requests 90
-```
-
-The collector requests only API-Football league `39` fixtures with status `FT`,
-caches the exact fixture and statistics responses, records their checksums and
-endpoints in `data/raw/manifest.json`, and skips verified caches on rerun. If the
-request budget is reached, rerun the same command to resume. The key is sent only
-as a request header and is never written to the manifest or command output.
-
-Rebuild the canonical table and join every available cache by exact season,
-date, home team, and away team:
+No key or account is required. Collect one SofaScore EPL season:
 
 ```bash
-python -m src.clean_data --include-possession
+python -m src.collect_possession --season 2024 --max-requests 25
 ```
 
-The rebuild writes `reports/possession_unmatched.csv`,
-`reports/possession_ambiguous.csv`, and `reports/possession_coverage.csv`.
-Coverage is reported by season and team against the configured 95% threshold.
-With no local API caches, the report correctly declares no valid Model B period;
-missing possession remains missing rather than becoming zero.
+Or collect the default 2017/18 through 2025/26 range with a strict request
+budget:
+
+```bash
+python -m src.collect_possession --all --max-requests 250
+```
+
+The collector discovers SofaScore season IDs, gets the teams from each season's
+standings, and retrieves one `averageBallPossession` value per team. Exact JSON
+responses are cached under `data/raw/sofascore/`, checksummed in
+`data/raw/manifest.json`, and skipped on rerun. Requests are throttled and use
+bounded retries. Rerunning the same command safely resumes a budget-limited run.
+
+The deterministic output is `data/processed/team_season_possession.csv`, with
+coverage recorded in `reports/possession_coverage.csv`. Each source-season row
+also names its following target season. A 2023/24 team average may therefore be
+used for 2024/25 fixtures, but never for fixtures within 2023/24 itself. This
+one-season lag is mandatory to prevent future leakage.
 
 ## Run the matched possession experiment
 
-After possession has reached the configured 95% season threshold, train the two
-models on one frozen match-ID cohort:
+Phase 7 must first be revised to join the new lagged team-season table. After
+that revision and sufficient 95% source-season team coverage, the intended
+commands remain:
 
 ```bash
 python -m src.train_xgboost --model-name model_a_matched --feature-set baseline_matched
@@ -182,14 +180,11 @@ python -m src.train_xgboost --model-name model_b --feature-set possession
 python -m src.compare_models --models model_a_matched model_b
 ```
 
-Model A-Matched uses only the baseline columns. Model B uses those exact rows
-and columns plus `home_possession_avg_5`, `away_possession_avg_5`, and
-`possession_edge`. Both variants independently use the approved validation-only
-search, while test metrics are reserved for their final comparison. The command
-refuses to train when train, validation, test, or holdout coverage is empty and
-never evaluates holdout metrics. When both models exist, the comparison writes
-`reports/possession_experiment.md` and applies the declared log-loss, macro-F1,
-integrity, and probability checks without selecting a production candidate.
+Model A-Matched will use only the baseline columns. Model B will use those exact
+rows and columns plus `home_previous_season_possession`,
+`away_previous_season_possession`, and `possession_edge`. Both variants must use
+identical match IDs, and neither may use a final possession average from the
+fixture's own season.
 
 ## Validate the project
 

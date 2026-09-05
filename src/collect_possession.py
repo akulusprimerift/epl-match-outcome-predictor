@@ -1,8 +1,9 @@
-"""Collect and cache API-Football EPL fixture possession responses."""
+"""Collect leakage-safe EPL team-season possession averages from SofaScore."""
 
 from __future__ import annotations
 
 import argparse
+import csv
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from http.client import HTTPException
@@ -10,17 +11,17 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 import sys
 import tempfile
+import time
 from typing import Any, Callable, Mapping, Sequence
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from src.download_data import (
     PROJECT_ROOT,
     ManifestError,
-    ManifestIntegrityError,
     load_manifest,
     load_seasons,
     sha256_file,
@@ -28,398 +29,519 @@ from src.download_data import (
 )
 
 
-API_BASE_URL = "https://v3.football.api-sports.io"
-API_SOURCE = "api-football"
-API_TEAM_PROVIDER = "api_football"
-API_KEY_ENVIRONMENT_VARIABLE = "API_FOOTBALL_KEY"
-EPL_LEAGUE_ID = 39
+TOURNAMENT_ID = 17
+SOFASCORE_SOURCE = "sofascore"
+SOFASCORE_TEAM_PROVIDER = "sofascore"
+SOFASCORE_BASE_URLS = (
+    "https://www.sofascore.com/api/v1",
+    "https://api.sofascore.com/api/v1",
+)
 REQUEST_TIMEOUT_SECONDS = 30.0
-USER_AGENT = "epl-match-outcome-predictor/1.0"
-FIXTURES_ENDPOINT = "fixtures"
-STATISTICS_ENDPOINT = "fixtures/statistics"
+DEFAULT_REQUEST_DELAY_SECONDS = 0.5
+DEFAULT_ATTEMPTS = 5
+DEFAULT_FIRST_SEASON = 2017
+DEFAULT_LAST_SEASON = 2025
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 Chrome/128.0 Safari/537.36"
+)
+
+SEASONS_ENDPOINT = "seasons"
+STANDINGS_ENDPOINT = "standings/total"
+TEAM_STATISTICS_ENDPOINT = "statistics/overall"
+
+TEAM_SEASON_POSSESSION_COLUMNS = (
+    "source_season",
+    "target_season",
+    "source_season_start_year",
+    "sofascore_season_id",
+    "team",
+    "team_slug",
+    "sofascore_team_name",
+    "sofascore_team_id",
+    "average_possession_pct",
+    "matches_recorded",
+    "source_url",
+)
+POSSESSION_COVERAGE_COLUMNS = (
+    "scope",
+    "source_season",
+    "target_season",
+    "team",
+    "expected_teams",
+    "available_team_averages",
+    "coverage",
+    "threshold",
+    "meets_threshold",
+    "model_b_period_start",
+)
 
 
 class PossessionCollectionError(RuntimeError):
-    """Base class for expected, actionable possession-collection failures."""
+    """Base class for actionable SofaScore collection failures."""
 
 
-class ApiConfigurationError(PossessionCollectionError):
-    """Raised when collection configuration or credentials are invalid."""
+class SofaScoreConfigurationError(PossessionCollectionError):
+    """Raised when collector configuration is invalid."""
 
 
-class ApiRequestError(PossessionCollectionError):
-    """Raised when an API-Football request cannot be completed."""
+class SofaScoreRequestError(PossessionCollectionError):
+    """Raised when a SofaScore request cannot be completed."""
 
 
-class ApiQuotaError(ApiRequestError):
-    """Raised when API-Football reports that its request quota is exhausted."""
+class SofaScoreResponseError(PossessionCollectionError):
+    """Raised when a SofaScore response violates the expected contract."""
 
 
-class ApiResponseError(PossessionCollectionError):
-    """Raised when a response violates the expected API-Football contract."""
+class SofaScoreCacheError(PossessionCollectionError):
+    """Raised when an immutable SofaScore cache fails provenance validation."""
 
 
-class ApiCacheError(PossessionCollectionError):
-    """Raised when an immutable cached response fails provenance validation."""
+class TeamMappingError(PossessionCollectionError):
+    """Raised when a SofaScore team name lacks an explicit canonical mapping."""
 
 
-class PossessionValueError(PossessionCollectionError):
-    """Raised when an API possession value is malformed or outside 0--100."""
-
-
-@dataclass(frozen=True)
-class ApiFixture:
-    """Validated EPL fixture metadata from a cached fixtures response."""
-
-    fixture_id: int
-    season_year: int
-    date: str
-    home_team_id: int
-    home_team_name: str
-    away_team_id: int
-    away_team_name: str
+class RequestBudgetReached(PossessionCollectionError):
+    """Raised internally before a request would exceed the run budget."""
 
 
 @dataclass(frozen=True)
-class ApiPossessionFixture(ApiFixture):
-    """One cached API fixture plus its possibly-missing possession values."""
+class SofaScoreSeason:
+    """One validated EPL season from the SofaScore season directory."""
 
-    home_possession: float | None
-    away_possession: float | None
+    start_year: int
+    season_code: str
+    season_id: int
+    name: str
+
+
+@dataclass(frozen=True)
+class SofaScoreTeam:
+    """One team listed in an EPL season table."""
+
+    team_id: int
+    name: str
+
+
+@dataclass(frozen=True)
+class TeamSeasonPossession:
+    """One possibly-missing team-season average with source provenance."""
+
+    source_season: str
+    target_season: str
+    source_season_start_year: int
+    sofascore_season_id: int
+    team: str
+    team_slug: str
+    sofascore_team_name: str
+    sofascore_team_id: int
+    average_possession_pct: float | None
+    matches_recorded: int | None
+    source_url: str
 
 
 @dataclass(frozen=True)
 class CollectionSummary:
     """Auditable counts from one bounded, resumable collection run."""
 
-    season_year: int
-    fixture_count: int
+    requested_seasons: tuple[int, ...]
+    seasons_found: int
+    teams_found: int
     statistics_cached: int
     statistics_downloaded: int
+    failed_statistics: int
     requests_made: int
-    stopped_before_quota: bool
+    stopped_before_budget: bool
+    output_rows: int
+    complete_rows: int
+    model_b_period_start: str | None
+    output_path: Path
+    coverage_path: Path
 
 
-def fixtures_url(season_year: int) -> str:
-    """Build the fixed completed-EPL-fixtures endpoint for one season."""
-    query = urlencode(
-        {"league": EPL_LEAGUE_ID, "season": season_year, "status": "FT"}
+@dataclass
+class _RequestBudget:
+    maximum: int
+    used: int = 0
+
+    def take(self) -> None:
+        if self.used >= self.maximum:
+            raise RequestBudgetReached(
+                "Request budget reached; rerun the same command to resume from cache."
+            )
+        self.used += 1
+
+
+def seasons_path() -> str:
+    return f"/unique-tournament/{TOURNAMENT_ID}/seasons"
+
+
+def standings_path(season_id: int) -> str:
+    return (
+        f"/unique-tournament/{TOURNAMENT_ID}/season/{season_id}/"
+        "standings/total"
     )
-    return f"{API_BASE_URL}/fixtures?{query}"
 
 
-def statistics_url(fixture_id: int) -> str:
-    """Build the fixture-statistics endpoint without embedding credentials."""
-    return f"{API_BASE_URL}/fixtures/statistics?{urlencode({'fixture': fixture_id})}"
-
-
-def season_year_to_code(
-    season_year: int, *, project_root: Path = PROJECT_ROOT
-) -> str:
-    """Resolve an API start year to an explicitly configured canonical season."""
-    seasons = load_seasons(project_root / "config" / "seasons.json")
-    for season in seasons:
-        if season.label.startswith(f"{season_year}/"):
-            return season.code
-    configured = ", ".join(season.label[:4] for season in seasons)
-    raise ApiConfigurationError(
-        f"API season {season_year!r} is not configured. "
-        f"Configured start years: {configured}"
+def team_statistics_path(team_id: int, season_id: int) -> str:
+    return (
+        f"/team/{team_id}/unique-tournament/{TOURNAMENT_ID}/"
+        f"season/{season_id}/statistics/overall"
     )
 
 
-def parse_possession(value: object) -> float | None:
-    """Parse an API possession percentage while preserving true missingness."""
+def primary_url(path: str) -> str:
+    return f"{SOFASCORE_BASE_URLS[0]}{path}"
+
+
+def season_code_from_start_year(start_year: int) -> str:
+    if isinstance(start_year, bool) or start_year < 1992 or start_year > 2098:
+        raise SofaScoreConfigurationError(
+            f"Invalid EPL season start year {start_year!r}."
+        )
+    return f"{start_year % 100:02d}{(start_year + 1) % 100:02d}"
+
+
+def parse_season_start_year(season: Mapping[str, object]) -> int | None:
+    """Parse values such as 2017/2018, 17/18, or 2017-18."""
+    text = f"{season.get('name', '')} {season.get('year', '')}"
+    four_digit = re.search(r"\b(20\d{2})\s*[/\-]", text)
+    if four_digit:
+        return int(four_digit.group(1))
+    two_digit = re.search(r"\b(\d{2})\s*[/\-]\s*\d{2}\b", text)
+    if two_digit:
+        year = int(two_digit.group(1))
+        return 2000 + year if year < 90 else 1900 + year
+    return None
+
+
+def parse_average_possession(value: object) -> float | None:
+    """Parse a numeric percentage while preserving missing values."""
     if value is None:
         return None
     if isinstance(value, bool):
-        raise PossessionValueError(f"Invalid possession value {value!r}.")
-
-    candidate: object = value
+        raise SofaScoreResponseError(f"Invalid average possession {value!r}.")
+    candidate = value
     if isinstance(value, str):
-        text = value.strip()
-        if not text.endswith("%"):
-            raise PossessionValueError(
-                f"Invalid possession value {value!r}; "
-                "expected a percentage such as '56%'."
-            )
-        candidate = text[:-1].strip()
+        candidate = value.strip().removesuffix("%").strip()
         if not candidate:
-            raise PossessionValueError(f"Invalid possession value {value!r}.")
-
+            return None
     try:
         parsed = float(candidate)
     except (TypeError, ValueError) as exc:
-        raise PossessionValueError(f"Invalid possession value {value!r}.") from exc
+        raise SofaScoreResponseError(
+            f"Invalid average possession {value!r}."
+        ) from exc
     if not math.isfinite(parsed) or parsed < 0.0 or parsed > 100.0:
-        raise PossessionValueError(
-            f"Possession value {value!r} must be between 0 and 100."
+        raise SofaScoreResponseError(
+            f"Average possession {value!r} must be between 0 and 100."
         )
     return parsed
 
 
+def _positive_integer(value: object, *, field_name: str) -> int:
+    if isinstance(value, bool):
+        raise SofaScoreResponseError(f"Invalid {field_name} {value!r}.")
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise SofaScoreResponseError(
+            f"Invalid {field_name} {value!r}."
+        ) from exc
+    if parsed <= 0 or str(parsed) != str(value).strip():
+        raise SofaScoreResponseError(f"Invalid {field_name} {value!r}.")
+    return parsed
+
+
+def _optional_nonnegative_integer(value: object, *, field_name: str) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        raise SofaScoreResponseError(f"Invalid {field_name} {value!r}.")
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise SofaScoreResponseError(
+            f"Invalid {field_name} {value!r}."
+        ) from exc
+    if parsed < 0 or str(parsed) != str(value).strip():
+        raise SofaScoreResponseError(f"Invalid {field_name} {value!r}.")
+    return parsed
+
+
+def _payload_object(payload: object, *, endpoint: str) -> dict[str, Any]:
+    if not isinstance(payload, dict):
+        raise SofaScoreResponseError(
+            f"SofaScore {endpoint} response must be a JSON object."
+        )
+    return payload
+
+
+def parse_seasons(payload: object) -> list[SofaScoreSeason]:
+    data = _payload_object(payload, endpoint=SEASONS_ENDPOINT)
+    items = data.get("seasons")
+    if not isinstance(items, list):
+        raise SofaScoreResponseError(
+            "SofaScore seasons response requires a seasons list."
+        )
+    seasons: list[SofaScoreSeason] = []
+    seen_years: set[int] = set()
+    seen_ids: set[int] = set()
+    for position, item in enumerate(items):
+        if not isinstance(item, dict):
+            raise SofaScoreResponseError(
+                f"SofaScore season item {position} must be an object."
+            )
+        start_year = parse_season_start_year(item)
+        if start_year is None:
+            continue
+        season_id = _positive_integer(item.get("id"), field_name="season id")
+        name = item.get("name")
+        if not isinstance(name, str) or not name.strip():
+            raise SofaScoreResponseError(
+                f"SofaScore season {season_id} has an invalid name."
+            )
+        if start_year in seen_years or season_id in seen_ids:
+            raise SofaScoreResponseError(
+                f"SofaScore seasons response duplicates {start_year} or {season_id}."
+            )
+        seasons.append(
+            SofaScoreSeason(
+                start_year=start_year,
+                season_code=season_code_from_start_year(start_year),
+                season_id=season_id,
+                name=name.strip(),
+            )
+        )
+        seen_years.add(start_year)
+        seen_ids.add(season_id)
+    return sorted(seasons, key=lambda item: item.start_year)
+
+
+def parse_standing_teams(payload: object) -> list[SofaScoreTeam]:
+    data = _payload_object(payload, endpoint=STANDINGS_ENDPOINT)
+    standings = data.get("standings")
+    if not isinstance(standings, list):
+        raise SofaScoreResponseError(
+            "SofaScore standings response requires a standings list."
+        )
+    teams: dict[int, str] = {}
+    for standing in standings:
+        if not isinstance(standing, dict):
+            continue
+        rows = standing.get("rows")
+        if not isinstance(rows, list):
+            continue
+        for row in rows:
+            team = row.get("team") if isinstance(row, dict) else None
+            if not isinstance(team, dict):
+                continue
+            team_id = _positive_integer(team.get("id"), field_name="team id")
+            name = team.get("name")
+            if not isinstance(name, str) or not name.strip():
+                raise SofaScoreResponseError(
+                    f"SofaScore team {team_id} has an invalid name."
+                )
+            normalized = name.strip()
+            if team_id in teams and teams[team_id] != normalized:
+                raise SofaScoreResponseError(
+                    f"SofaScore team id {team_id} has conflicting names."
+                )
+            teams[team_id] = normalized
+    if not teams:
+        raise SofaScoreResponseError("SofaScore standings contain no teams.")
+    return [SofaScoreTeam(team_id, teams[team_id]) for team_id in sorted(teams)]
+
+
+def parse_team_statistics(payload: object) -> tuple[float | None, int | None]:
+    data = _payload_object(payload, endpoint=TEAM_STATISTICS_ENDPOINT)
+    statistics = data.get("statistics")
+    if not isinstance(statistics, dict):
+        raise SofaScoreResponseError(
+            "SofaScore team statistics response requires a statistics object."
+        )
+    return (
+        parse_average_possession(statistics.get("averageBallPossession")),
+        _optional_nonnegative_integer(
+            statistics.get("matches"), field_name="matches"
+        ),
+    )
+
+
 def _format_utc(moment: datetime) -> str:
     if moment.tzinfo is None:
-        raise ApiConfigurationError(
+        raise SofaScoreConfigurationError(
             "The collector clock must return a timezone-aware value."
         )
-    normalized = moment.astimezone(timezone.utc).replace(microsecond=0)
-    return normalized.isoformat().replace("+00:00", "Z")
-
-
-def _response_items(payload: object, *, endpoint: str) -> list[Any]:
-    if not isinstance(payload, dict):
-        raise ApiResponseError(
-            f"API-Football {endpoint} response must be a JSON object."
-        )
-    errors = payload.get("errors")
-    if errors not in (None, {}, [], ""):
-        error_text = json.dumps(errors, ensure_ascii=True).lower()
-        if (
-            "limit" in error_text
-            or "quota" in error_text
-            or "request" in error_text
-        ):
-            raise ApiQuotaError(
-                "API-Football reported exhausted request quota; "
-                "resume after quota is available."
-            )
-        raise ApiResponseError(
-            f"API-Football rejected the {endpoint} request; "
-            "verify the key and subscription."
-        )
-    response = payload.get("response")
-    if not isinstance(response, list):
-        raise ApiResponseError(
-            f"API-Football {endpoint} response requires a JSON response list."
-        )
-    return response
-
-
-def _read_http_response(
-    source_url: str,
-    api_key: str | None,
-    *,
-    opener: Callable[..., Any],
-    timeout: float,
-) -> tuple[bytes, dict[str, Any], int | None]:
-    if api_key is None or not api_key.strip():
-        raise ApiConfigurationError(
-            f"{API_KEY_ENVIRONMENT_VARIABLE} is missing or empty. "
-            "Set it locally before requesting uncached API data."
-        )
-    request = Request(
-        source_url,
-        headers={
-            "User-Agent": USER_AGENT,
-            "x-apisports-key": api_key.strip(),
-        },
+    return (
+        moment.astimezone(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
     )
+
+
+def _relative_path(project_root: Path, destination: Path) -> str:
     try:
-        with opener(request, timeout=timeout) as response:
-            status = getattr(response, "status", None)
-            if status is not None and not 200 <= int(status) < 300:
-                raise ApiRequestError(
-                    f"HTTP {status} from API-Football for {source_url}."
-                )
-            raw_bytes = response.read()
-            headers = getattr(response, "headers", {})
-            remaining_text = None
-            if hasattr(headers, "get"):
-                remaining_text = headers.get("x-ratelimit-requests-remaining")
-                if remaining_text is None:
-                    remaining_text = headers.get(
-                        "X-RateLimit-Requests-Remaining"
-                    )
-    except HTTPError as exc:
-        if exc.code == 429:
-            raise ApiQuotaError(
-                "API-Football returned HTTP 429; "
-                "resume after quota is available."
-            ) from exc
-        raise ApiRequestError(
-            f"HTTP {exc.code} from API-Football for {source_url}: {exc.reason}"
-        ) from exc
-    except URLError as exc:
-        raise ApiRequestError(f"Could not reach API-Football: {exc.reason}") from exc
-    except TimeoutError as exc:
-        raise ApiRequestError(
-            f"Timed out requesting API-Football endpoint {source_url}."
-        ) from exc
-    except HTTPException as exc:
-        raise ApiRequestError(f"API-Football HTTP response failed: {exc}") from exc
-    except OSError as exc:
-        raise ApiRequestError(f"Could not read API-Football response: {exc}") from exc
-
-    try:
-        payload = json.loads(raw_bytes.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise ApiResponseError(
-            f"API-Football returned invalid JSON for {source_url}."
-        ) from exc
-    if not isinstance(payload, dict):
-        raise ApiResponseError(
-            f"API-Football returned a non-object JSON response for {source_url}."
-        )
-
-    remaining: int | None = None
-    if remaining_text is not None:
-        try:
-            remaining = int(str(remaining_text))
-        except ValueError as exc:
-            raise ApiResponseError(
-                "API-Football returned an invalid remaining-quota header."
-            ) from exc
-        if remaining < 0:
-            raise ApiResponseError(
-                "API-Football returned a negative remaining-quota header."
-            )
-    return raw_bytes, payload, remaining
-
-
-def _relative_cache_path(project_root: Path, destination: Path) -> str:
-    try:
-        return (
-            destination.resolve()
-            .relative_to(project_root.resolve())
-            .as_posix()
-        )
+        return destination.resolve().relative_to(project_root.resolve()).as_posix()
     except ValueError as exc:
-        raise ApiCacheError(
-            f"API cache path escapes the project root: {destination}"
+        raise SofaScoreCacheError(
+            f"SofaScore cache path escapes the project root: {destination}"
         ) from exc
 
 
 def _manifest_record_for_path(
     records: Sequence[Mapping[str, Any]], local_path: str
 ) -> Mapping[str, Any] | None:
-    matches = [
-        record for record in records if record.get("local_path") == local_path
-    ]
+    matches = [record for record in records if record.get("local_path") == local_path]
     if len(matches) > 1:
-        raise ApiCacheError(
+        raise SofaScoreCacheError(
             f"Manifest contains duplicate records for {local_path}."
         )
     return matches[0] if matches else None
-
-
-def _verify_api_record(
-    record: Mapping[str, Any],
-    *,
-    season_year: int,
-    endpoint: str,
-    fixture_id: int | None,
-    source_url: str,
-    local_path: str,
-) -> None:
-    expected = {
-        "source": API_SOURCE,
-        "season": str(season_year),
-        "endpoint": endpoint,
-        "fixture_id": fixture_id,
-        "source_url": source_url,
-        "local_path": local_path,
-    }
-    mismatches = [
-        key for key, value in expected.items() if record.get(key) != value
-    ]
-    if mismatches:
-        raise ApiCacheError(
-            f"API cache manifest mismatch for {local_path}: "
-            f"{', '.join(mismatches)}."
-        )
 
 
 def _load_cached_payload(
     destination: Path,
     *,
     project_root: Path,
-    records: Sequence[Mapping[str, Any]],
-    season_year: int,
     endpoint: str,
-    fixture_id: int | None,
-    source_url: str,
-) -> dict[str, Any] | None:
-    local_path = _relative_cache_path(project_root, destination)
+    season_code: str,
+    season_id: int | None,
+    team_id: int | None,
+) -> tuple[dict[str, Any], Mapping[str, Any]] | None:
+    records = load_manifest(project_root / "data" / "raw" / "manifest.json")
+    local_path = _relative_path(project_root, destination)
     record = _manifest_record_for_path(records, local_path)
     if not destination.exists():
         if record is not None:
-            raise ApiCacheError(
-                f"Manifested API cache file is missing: {destination}"
+            raise SofaScoreCacheError(
+                f"Manifested SofaScore cache is missing: {destination}"
             )
         return None
     if record is None:
-        raise ApiCacheError(
-            f"API cache {destination} exists without a manifest record; "
-            "refusing to infer provenance."
+        raise SofaScoreCacheError(
+            f"SofaScore cache exists without manifest provenance: {destination}"
         )
-    _verify_api_record(
-        record,
-        season_year=season_year,
-        endpoint=endpoint,
-        fixture_id=fixture_id,
-        source_url=source_url,
-        local_path=local_path,
-    )
-    try:
-        checksum = sha256_file(destination)
-    except ManifestIntegrityError as exc:
-        raise ApiCacheError(str(exc)) from exc
-    if checksum != record["sha256"]:
-        raise ApiCacheError(
-            f"Checksum mismatch for immutable API cache {destination}."
+    expected = {
+        "source": SOFASCORE_SOURCE,
+        "season": season_code,
+        "endpoint": endpoint,
+        "sofascore_season_id": season_id,
+        "sofascore_team_id": team_id,
+    }
+    mismatches = [key for key, value in expected.items() if record.get(key) != value]
+    if mismatches:
+        raise SofaScoreCacheError(
+            f"SofaScore manifest mismatch for {local_path}: {', '.join(mismatches)}."
+        )
+    source_url = record.get("source_url")
+    if not isinstance(source_url, str) or not source_url.startswith(SOFASCORE_BASE_URLS):
+        raise SofaScoreCacheError(
+            f"SofaScore manifest has an invalid source URL for {local_path}."
+        )
+    if sha256_file(destination) != record["sha256"]:
+        raise SofaScoreCacheError(
+            f"Checksum mismatch for immutable SofaScore cache {destination}."
         )
     try:
         payload = json.loads(destination.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise ApiCacheError(
-            f"Could not read cached API response {destination}: {exc}"
+        raise SofaScoreCacheError(
+            f"Could not read cached SofaScore response {destination}: {exc}"
         ) from exc
-    response = _response_items(payload, endpoint=endpoint)
-    if len(response) != record["row_count"]:
-        raise ApiCacheError(
-            f"Row-count mismatch for immutable API cache {destination}."
-        )
-    return payload
+    return _payload_object(payload, endpoint=endpoint), record
 
 
-def _write_api_cache(
+def _fetch_json(
+    path: str,
+    *,
+    budget: _RequestBudget,
+    opener: Callable[..., Any],
+    timeout: float,
+    attempts: int,
+    sleep_fn: Callable[[float], None],
+) -> tuple[bytes, dict[str, Any], str]:
+    last_error: BaseException | None = None
+    for base_url in SOFASCORE_BASE_URLS:
+        source_url = f"{base_url}{path}"
+        for attempt in range(attempts):
+            budget.take()
+            request = Request(
+                source_url,
+                headers={"Accept": "application/json", "User-Agent": USER_AGENT},
+            )
+            try:
+                with opener(request, timeout=timeout) as response:
+                    status = getattr(response, "status", None)
+                    if status is not None and not 200 <= int(status) < 300:
+                        raise SofaScoreRequestError(
+                            f"HTTP {status} from SofaScore for {source_url}."
+                        )
+                    raw_bytes = response.read()
+                payload = json.loads(raw_bytes.decode("utf-8"))
+                return raw_bytes, _payload_object(payload, endpoint=path), source_url
+            except HTTPError as exc:
+                last_error = exc
+                if exc.code in (403, 404):
+                    break
+                if exc.code == 429:
+                    retry_after = exc.headers.get("Retry-After") if exc.headers else None
+                    try:
+                        wait = float(retry_after) if retry_after is not None else 2**attempt
+                    except ValueError:
+                        wait = float(2**attempt)
+                    sleep_fn(max(wait, 2.0))
+                    continue
+                sleep_fn(float(2**attempt))
+            except (
+                URLError,
+                TimeoutError,
+                HTTPException,
+                OSError,
+                UnicodeDecodeError,
+                json.JSONDecodeError,
+                SofaScoreRequestError,
+                SofaScoreResponseError,
+            ) as exc:
+                last_error = exc
+                sleep_fn(float(2**attempt))
+        # A 403/404 or exhausted retries moves to the documented fallback host.
+    raise SofaScoreRequestError(f"Could not retrieve {path}: {last_error}")
+
+
+def _write_cache(
     raw_bytes: bytes,
-    payload: Mapping[str, Any],
     destination: Path,
     *,
     project_root: Path,
-    season_year: int,
     endpoint: str,
-    fixture_id: int | None,
+    season_code: str,
+    season_id: int | None,
+    team_id: int | None,
+    team_name: str | None,
     source_url: str,
+    row_count: int,
     clock: Callable[[], datetime],
 ) -> None:
-    """Atomically preserve exact response bytes, then record their provenance."""
     if destination.exists():
-        raise ApiCacheError(
-            f"Refusing to overwrite immutable API cache {destination}."
+        raise SofaScoreCacheError(
+            f"Refusing to overwrite immutable SofaScore cache {destination}."
         )
     destination.parent.mkdir(parents=True, exist_ok=True)
-    file_descriptor, temporary_name = tempfile.mkstemp(
-        dir=destination.parent,
-        prefix=f".{destination.name}.",
-        suffix=".tmp",
+    descriptor, temporary_name = tempfile.mkstemp(
+        dir=destination.parent, prefix=f".{destination.name}.", suffix=".tmp"
     )
     temporary_path = Path(temporary_name)
     try:
-        with os.fdopen(file_descriptor, "wb") as output:
+        with os.fdopen(descriptor, "wb") as output:
             output.write(raw_bytes)
             output.flush()
             os.fsync(output.fileno())
-        if destination.exists():
-            raise ApiCacheError(
-                f"API cache appeared during collection: {destination}"
-            )
         os.replace(temporary_path, destination)
     except OSError as exc:
-        raise ApiCacheError(
-            f"Could not atomically cache API response {destination}: {exc}"
+        raise SofaScoreCacheError(
+            f"Could not atomically cache SofaScore response {destination}: {exc}"
         ) from exc
     finally:
         temporary_path.unlink(missing_ok=True)
@@ -427,461 +549,545 @@ def _write_api_cache(
     try:
         manifest_path = project_root / "data" / "raw" / "manifest.json"
         records = load_manifest(manifest_path)
-        local_path = _relative_cache_path(project_root, destination)
+        local_path = _relative_path(project_root, destination)
         if _manifest_record_for_path(records, local_path) is not None:
-            raise ApiCacheError(
+            raise SofaScoreCacheError(
                 f"Manifest record appeared during collection for {local_path}."
             )
-        response = _response_items(payload, endpoint=endpoint)
         record = {
-            "source": API_SOURCE,
-            "season": str(season_year),
+            "source": SOFASCORE_SOURCE,
+            "season": season_code,
             "endpoint": endpoint,
-            "fixture_id": fixture_id,
+            "sofascore_season_id": season_id,
+            "sofascore_team_id": team_id,
+            "sofascore_team_name": team_name,
             "source_url": source_url,
             "local_path": local_path,
             "retrieved_at_utc": _format_utc(clock()),
             "sha256": sha256_file(destination),
-            "row_count": len(response),
+            "row_count": row_count,
         }
         write_manifest_atomic([*records, record], manifest_path)
     except Exception:
-        try:
-            destination.unlink(missing_ok=True)
-        except OSError as cleanup_error:
-            raise ApiCacheError(
-                "API manifest update failed and the unmanifested response "
-                f"could not be removed: {destination}: {cleanup_error}"
-            ) from cleanup_error
+        destination.unlink(missing_ok=True)
         raise
 
 
-def _positive_integer(value: object, *, field_name: str) -> int:
-    if isinstance(value, bool):
-        raise ApiResponseError(f"API fixture has invalid {field_name}.")
-    try:
-        parsed = int(value)
-    except (TypeError, ValueError) as exc:
-        raise ApiResponseError(
-            f"API fixture has invalid {field_name}."
-        ) from exc
-    if parsed <= 0 or str(parsed) != str(value).strip():
-        raise ApiResponseError(f"API fixture has invalid {field_name}.")
-    return parsed
-
-
-def _required_name(value: object, *, field_name: str) -> str:
-    if not isinstance(value, str) or not value.strip():
-        raise ApiResponseError(f"API fixture has invalid {field_name}.")
-    return value.strip()
-
-
-def parse_fixture_list(
-    payload: object, *, season_year: int
-) -> list[ApiFixture]:
-    """Validate a completed EPL fixture listing and return stable metadata."""
-    items = _response_items(payload, endpoint=FIXTURES_ENDPOINT)
-    fixtures: list[ApiFixture] = []
-    seen_ids: set[int] = set()
-    for position, item in enumerate(items):
-        if not isinstance(item, dict):
-            raise ApiResponseError(
-                f"Fixture response item {position} must be an object."
-            )
-        fixture = item.get("fixture")
-        league = item.get("league")
-        teams = item.get("teams")
-        if (
-            not isinstance(fixture, dict)
-            or not isinstance(league, dict)
-            or not isinstance(teams, dict)
-        ):
-            raise ApiResponseError(
-                f"Fixture response item {position} is missing fixture, "
-                "league, or teams metadata."
-            )
-        if league.get("id") != EPL_LEAGUE_ID or league.get("season") != season_year:
-            raise ApiResponseError(
-                f"Fixture response item {position} is not EPL league "
-                f"{EPL_LEAGUE_ID}, season {season_year}."
-            )
-        status = fixture.get("status")
-        if not isinstance(status, dict) or status.get("short") != "FT":
-            raise ApiResponseError(
-                f"Fixture response item {position} is not completed with status FT."
-            )
-        fixture_id = _positive_integer(
-            fixture.get("id"), field_name="fixture id"
-        )
-        if fixture_id in seen_ids:
-            raise ApiResponseError(
-                f"Fixture response contains duplicate fixture id {fixture_id}."
-            )
-        date_text = fixture.get("date")
-        if not isinstance(date_text, str):
-            raise ApiResponseError(f"Fixture {fixture_id} has an invalid date.")
-        try:
-            parsed_datetime = datetime.fromisoformat(
-                date_text.replace("Z", "+00:00")
-            )
-        except ValueError as exc:
-            raise ApiResponseError(
-                f"Fixture {fixture_id} has an invalid ISO date."
-            ) from exc
-        if parsed_datetime.tzinfo is None:
-            raise ApiResponseError(
-                f"Fixture {fixture_id} date must include a timezone."
-            )
-
-        home = teams.get("home")
-        away = teams.get("away")
-        if not isinstance(home, dict) or not isinstance(away, dict):
-            raise ApiResponseError(
-                f"Fixture {fixture_id} has invalid home/away teams."
-            )
-        home_id = _positive_integer(
-            home.get("id"), field_name="home team id"
-        )
-        away_id = _positive_integer(
-            away.get("id"), field_name="away team id"
-        )
-        if home_id == away_id:
-            raise ApiResponseError(
-                f"Fixture {fixture_id} has the same home and away team id."
-            )
-        fixtures.append(
-            ApiFixture(
-                fixture_id=fixture_id,
-                season_year=season_year,
-                date=parsed_datetime.date().isoformat(),
-                home_team_id=home_id,
-                home_team_name=_required_name(
-                    home.get("name"), field_name="home team name"
-                ),
-                away_team_id=away_id,
-                away_team_name=_required_name(
-                    away.get("name"), field_name="away team name"
-                ),
-            )
-        )
-        seen_ids.add(fixture_id)
-    return sorted(fixtures, key=lambda item: item.fixture_id)
-
-
-def _team_possession(
-    statistics: object, *, fixture_id: int, team_id: int
-) -> float | None:
-    if not isinstance(statistics, list):
-        raise ApiResponseError(
-            f"Fixture {fixture_id} team {team_id} statistics must be a list."
-        )
-    matches = [
-        item
-        for item in statistics
-        if isinstance(item, dict) and item.get("type") == "Ball Possession"
-    ]
-    if len(matches) > 1:
-        raise ApiResponseError(
-            f"Fixture {fixture_id} team {team_id} has duplicate "
-            "Ball Possession statistics."
-        )
-    if not matches:
-        return None
-    return parse_possession(matches[0].get("value"))
-
-
-def parse_fixture_statistics(
-    payload: object, fixture: ApiFixture
-) -> ApiPossessionFixture:
-    """Extract home/away possession by stable API team ID, regardless of order."""
-    items = _response_items(payload, endpoint=STATISTICS_ENDPOINT)
-    by_team: dict[int, Mapping[str, Any]] = {}
-    expected_ids = {fixture.home_team_id, fixture.away_team_id}
-    for position, item in enumerate(items):
-        if not isinstance(item, dict) or not isinstance(item.get("team"), dict):
-            raise ApiResponseError(
-                f"Fixture {fixture.fixture_id} statistics item {position} "
-                "lacks team metadata."
-            )
-        team_id = _positive_integer(
-            item["team"].get("id"), field_name="statistics team id"
-        )
-        if team_id not in expected_ids:
-            raise ApiResponseError(
-                f"Fixture {fixture.fixture_id} statistics contain "
-                f"unexpected team id {team_id}."
-            )
-        if team_id in by_team:
-            raise ApiResponseError(
-                f"Fixture {fixture.fixture_id} statistics duplicate team id {team_id}."
-            )
-        by_team[team_id] = item
-
-    def possession_for(team_id: int) -> float | None:
-        item = by_team.get(team_id)
-        if item is None:
-            return None
-        return _team_possession(
-            item.get("statistics"),
-            fixture_id=fixture.fixture_id,
-            team_id=team_id,
-        )
-
-    return ApiPossessionFixture(
-        **fixture.__dict__,
-        home_possession=possession_for(fixture.home_team_id),
-        away_possession=possession_for(fixture.away_team_id),
-    )
-
-
-def collect_season(
-    season_year: int,
-    max_requests: int,
+def _load_or_fetch(
+    path: str,
+    destination: Path,
     *,
-    project_root: Path = PROJECT_ROOT,
-    api_key: str | None = None,
-    opener: Callable[..., Any] = urlopen,
-    timeout: float = REQUEST_TIMEOUT_SECONDS,
-    clock: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
-) -> CollectionSummary:
-    """Collect one EPL season within a strict request budget and resume from cache."""
-    project_root = project_root.resolve()
-    season_year_to_code(season_year, project_root=project_root)
-    if isinstance(max_requests, bool) or max_requests <= 0:
-        raise ApiConfigurationError(
-            "--max-requests must be a positive integer."
-        )
-    if timeout <= 0:
-        raise ApiConfigurationError("API request timeout must be positive.")
-
-    raw_directory = project_root / "data" / "raw" / "api_football"
-    manifest_path = project_root / "data" / "raw" / "manifest.json"
-    request_count = 0
-    server_quota_remaining: int | None = None
-    listing_path = raw_directory / f"fixtures_{season_year}.json"
-    listing_url = fixtures_url(season_year)
-    records = load_manifest(manifest_path)
-    listing_payload = _load_cached_payload(
-        listing_path,
+    project_root: Path,
+    endpoint: str,
+    season_code: str,
+    season_id: int | None,
+    team_id: int | None,
+    team_name: str | None,
+    parser: Callable[[object], Sequence[object] | tuple[object, object]],
+    budget: _RequestBudget,
+    opener: Callable[..., Any],
+    timeout: float,
+    attempts: int,
+    sleep_fn: Callable[[float], None],
+    request_delay: float,
+) -> tuple[dict[str, Any], bool]:
+    cached = _load_cached_payload(
+        destination,
         project_root=project_root,
-        records=records,
-        season_year=season_year,
-        endpoint=FIXTURES_ENDPOINT,
-        fixture_id=None,
-        source_url=listing_url,
+        endpoint=endpoint,
+        season_code=season_code,
+        season_id=season_id,
+        team_id=team_id,
     )
-    if listing_payload is None:
-        raw_bytes, listing_payload, server_quota_remaining = _read_http_response(
-            listing_url,
-            api_key,
-            opener=opener,
-            timeout=timeout,
-        )
-        request_count += 1
-        _response_items(listing_payload, endpoint=FIXTURES_ENDPOINT)
-        _write_api_cache(
-            raw_bytes,
-            listing_payload,
-            listing_path,
-            project_root=project_root,
-            season_year=season_year,
-            endpoint=FIXTURES_ENDPOINT,
-            fixture_id=None,
-            source_url=listing_url,
-            clock=clock,
-        )
+    if cached is not None:
+        payload, record = cached
+        parsed = parser(payload)
+        parsed_row_count = 1 if endpoint == TEAM_STATISTICS_ENDPOINT else len(parsed)
+        if parsed_row_count != int(record["row_count"]):
+            raise SofaScoreCacheError(
+                f"Row-count mismatch for SofaScore cache {destination}."
+            )
+        return payload, True
 
-    fixtures = parse_fixture_list(listing_payload, season_year=season_year)
-    cached_statistics = 0
-    downloaded_statistics = 0
-    stopped = False
-    for fixture in fixtures:
-        stats_path = (
-            raw_directory / f"fixture_{fixture.fixture_id}_statistics.json"
-        )
-        stats_url = statistics_url(fixture.fixture_id)
-        records = load_manifest(manifest_path)
-        stats_payload = _load_cached_payload(
-            stats_path,
-            project_root=project_root,
-            records=records,
-            season_year=season_year,
-            endpoint=STATISTICS_ENDPOINT,
-            fixture_id=fixture.fixture_id,
-            source_url=stats_url,
-        )
-        if stats_payload is not None:
-            parse_fixture_statistics(stats_payload, fixture)
-            cached_statistics += 1
+    raw_bytes, payload, source_url = _fetch_json(
+        path,
+        budget=budget,
+        opener=opener,
+        timeout=timeout,
+        attempts=attempts,
+        sleep_fn=sleep_fn,
+    )
+    parsed = parser(payload)
+    parsed_row_count = 1 if endpoint == TEAM_STATISTICS_ENDPOINT else len(parsed)
+    _write_cache(
+        raw_bytes,
+        destination,
+        project_root=project_root,
+        endpoint=endpoint,
+        season_code=season_code,
+        season_id=season_id,
+        team_id=team_id,
+        team_name=team_name,
+        source_url=source_url,
+        row_count=parsed_row_count,
+        clock=lambda: datetime.now(timezone.utc),
+    )
+    if request_delay:
+        sleep_fn(request_delay)
+    return payload, False
+
+
+def _team_map(project_root: Path) -> dict[str, tuple[str, str]]:
+    path = project_root / "config" / "team_name_map.csv"
+    try:
+        with path.open("r", encoding="utf-8-sig", newline="") as source:
+            rows = list(csv.DictReader(source))
+    except (OSError, UnicodeDecodeError, csv.Error) as exc:
+        raise TeamMappingError(f"Could not read team mapping {path}: {exc}") from exc
+    mappings: dict[str, tuple[str, str]] = {}
+    for row in rows:
+        if row.get("provider") != SOFASCORE_TEAM_PROVIDER:
             continue
-        if request_count >= max_requests or server_quota_remaining == 0:
-            stopped = True
-            break
-        raw_bytes, stats_payload, server_quota_remaining = _read_http_response(
-            stats_url,
-            api_key,
-            opener=opener,
-            timeout=timeout,
-        )
-        request_count += 1
-        _response_items(stats_payload, endpoint=STATISTICS_ENDPOINT)
-        _write_api_cache(
-            raw_bytes,
-            stats_payload,
-            stats_path,
-            project_root=project_root,
-            season_year=season_year,
-            endpoint=STATISTICS_ENDPOINT,
-            fixture_id=fixture.fixture_id,
-            source_url=stats_url,
-            clock=clock,
-        )
-        parse_fixture_statistics(stats_payload, fixture)
-        downloaded_statistics += 1
+        provider_name = str(row.get("provider_team_name", "")).strip()
+        canonical_name = str(row.get("canonical_team_name", "")).strip()
+        slug = str(row.get("canonical_team_slug", "")).strip()
+        if not provider_name or not canonical_name or not slug:
+            raise TeamMappingError("SofaScore team mapping contains an empty field.")
+        identity = (canonical_name, slug)
+        if provider_name in mappings and mappings[provider_name] != identity:
+            raise TeamMappingError(
+                f"Conflicting SofaScore mapping for {provider_name!r}."
+            )
+        mappings[provider_name] = identity
+    if not mappings:
+        raise TeamMappingError("No SofaScore team mappings are configured.")
+    return mappings
 
-    return CollectionSummary(
-        season_year=season_year,
-        fixture_count=len(fixtures),
-        statistics_cached=cached_statistics,
-        statistics_downloaded=downloaded_statistics,
-        requests_made=request_count,
-        stopped_before_quota=stopped,
+
+def _write_csv_atomic(
+    rows: Sequence[Mapping[str, object]], columns: Sequence[str], destination: Path
+) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        dir=destination.parent, prefix=f".{destination.name}.", suffix=".tmp"
     )
+    temporary_path = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="") as output:
+            writer = csv.DictWriter(output, fieldnames=list(columns), lineterminator="\n")
+            writer.writeheader()
+            writer.writerows(rows)
+            output.flush()
+            os.fsync(output.fileno())
+        os.replace(temporary_path, destination)
+    except (OSError, csv.Error, ValueError) as exc:
+        raise PossessionCollectionError(
+            f"Could not atomically write {destination}: {exc}"
+        ) from exc
+    finally:
+        temporary_path.unlink(missing_ok=True)
 
 
-def load_cached_possession_fixtures(
+def _coverage_threshold(project_root: Path) -> float:
+    path = project_root / "config" / "model_config.json"
+    try:
+        configured = json.loads(path.read_text(encoding="utf-8"))
+        threshold = float(configured["possession_coverage_threshold"])
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError, KeyError, ValueError) as exc:
+        raise SofaScoreConfigurationError(
+            f"Could not load possession coverage threshold from {path}: {exc}"
+        ) from exc
+    if not 0.0 <= threshold <= 1.0:
+        raise SofaScoreConfigurationError(
+            "possession_coverage_threshold must be between zero and one."
+        )
+    return threshold
+
+
+def build_processed_possession(
     project_root: Path = PROJECT_ROOT,
-) -> list[ApiPossessionFixture]:
-    """Load every fully cached, manifested API fixture-statistics response."""
+) -> tuple[list[TeamSeasonPossession], str | None, Path, Path]:
+    """Rebuild the team-season table and coverage report only from raw caches."""
     project_root = project_root.resolve()
     manifest_path = project_root / "data" / "raw" / "manifest.json"
     records = load_manifest(manifest_path)
-    listing_records = sorted(
+    mappings = _team_map(project_root)
+    standings_records = sorted(
         (
             record
             for record in records
-            if record.get("source") == API_SOURCE
-            and record.get("endpoint") == FIXTURES_ENDPOINT
+            if record.get("source") == SOFASCORE_SOURCE
+            and record.get("endpoint") == STANDINGS_ENDPOINT
         ),
-        key=lambda item: str(item.get("season")),
+        key=lambda record: str(record.get("season")),
     )
-    loaded: list[ApiPossessionFixture] = []
-    consumed_statistics_paths: set[str] = set()
-    for record in listing_records:
-        try:
-            season_year = int(record["season"])
-        except (TypeError, ValueError) as exc:
-            raise ApiCacheError(
-                "API fixture-list manifest record has an invalid season."
-            ) from exc
-        season_year_to_code(season_year, project_root=project_root)
-        listing_path = project_root / str(record["local_path"])
-        payload = _load_cached_payload(
-            listing_path,
-            project_root=project_root,
-            records=records,
-            season_year=season_year,
-            endpoint=FIXTURES_ENDPOINT,
-            fixture_id=None,
-            source_url=fixtures_url(season_year),
-        )
-        if payload is None:  # pragma: no cover - manifested missing handled above
-            raise ApiCacheError(
-                f"Manifested fixture listing is missing: {listing_path}"
-            )
-        for fixture in parse_fixture_list(payload, season_year=season_year):
-            stats_path = (
-                project_root
-                / "data"
-                / "raw"
-                / "api_football"
-                / f"fixture_{fixture.fixture_id}_statistics.json"
-            )
-            stats_local_path = _relative_cache_path(project_root, stats_path)
-            stats_record = _manifest_record_for_path(records, stats_local_path)
-            if stats_record is None and not stats_path.exists():
-                continue
-            stats_payload = _load_cached_payload(
-                stats_path,
-                project_root=project_root,
-                records=records,
-                season_year=season_year,
-                endpoint=STATISTICS_ENDPOINT,
-                fixture_id=fixture.fixture_id,
-                source_url=statistics_url(fixture.fixture_id),
-            )
-            if stats_payload is None:  # pragma: no cover - state handled above
-                continue
-            consumed_statistics_paths.add(stats_local_path)
-            loaded.append(parse_fixture_statistics(stats_payload, fixture))
+    output_rows: list[TeamSeasonPossession] = []
+    coverage_rows: list[dict[str, object]] = []
+    threshold = _coverage_threshold(project_root)
+    qualifying_targets: list[str] = []
 
-    orphaned = sorted(
-        str(record["local_path"])
-        for record in records
-        if record.get("source") == API_SOURCE
-        and record.get("endpoint") == STATISTICS_ENDPOINT
-        and str(record["local_path"]) not in consumed_statistics_paths
-    )
-    if orphaned:
-        raise ApiCacheError(
-            "Statistics caches have no matching configured EPL fixture listing: "
-            + ", ".join(orphaned)
+    for standing_record in standings_records:
+        source_season = str(standing_record["season"])
+        season_id = _positive_integer(
+            standing_record.get("sofascore_season_id"), field_name="season id"
         )
-    return sorted(
-        loaded, key=lambda item: (item.season_year, item.fixture_id)
+        if not re.fullmatch(r"\d{4}", source_season):
+            raise SofaScoreCacheError(
+                f"Invalid canonical season code in {standing_record['local_path']}."
+            )
+        start_year = 2000 + int(source_season[:2])
+        if start_year > 2089:
+            start_year -= 100
+        target_season = season_code_from_start_year(start_year + 1)
+        standing_path = project_root / str(standing_record["local_path"])
+        cached = _load_cached_payload(
+            standing_path,
+            project_root=project_root,
+            endpoint=STANDINGS_ENDPOINT,
+            season_code=source_season,
+            season_id=season_id,
+            team_id=None,
+        )
+        if cached is None:  # pragma: no cover - manifested missing handled above
+            raise SofaScoreCacheError(f"Missing standings cache {standing_path}.")
+        teams = parse_standing_teams(cached[0])
+        complete_count = 0
+        seen_team_slugs: set[str] = set()
+        for team in sorted(teams, key=lambda item: item.name):
+            identity = mappings.get(team.name)
+            if identity is None:
+                raise TeamMappingError(
+                    f"Unmapped SofaScore team name {team.name!r}; add it to "
+                    "config/team_name_map.csv."
+                )
+            matching = [
+                record
+                for record in records
+                if record.get("source") == SOFASCORE_SOURCE
+                and record.get("endpoint") == TEAM_STATISTICS_ENDPOINT
+                and record.get("sofascore_season_id") == season_id
+                and record.get("sofascore_team_id") == team.team_id
+            ]
+            if len(matching) > 1:
+                raise SofaScoreCacheError(
+                    f"Duplicate team-statistics caches for season {season_id}, "
+                    f"team {team.team_id}."
+                )
+            possession: float | None = None
+            matches: int | None = None
+            source_url = primary_url(team_statistics_path(team.team_id, season_id))
+            if matching:
+                record = matching[0]
+                stats_path = project_root / str(record["local_path"])
+                stats_cached = _load_cached_payload(
+                    stats_path,
+                    project_root=project_root,
+                    endpoint=TEAM_STATISTICS_ENDPOINT,
+                    season_code=source_season,
+                    season_id=season_id,
+                    team_id=team.team_id,
+                )
+                if stats_cached is None:  # pragma: no cover
+                    raise SofaScoreCacheError(f"Missing statistics cache {stats_path}.")
+                possession, matches = parse_team_statistics(stats_cached[0])
+                source_url = str(record["source_url"])
+            if possession is not None:
+                complete_count += 1
+            canonical_name, slug = identity
+            if slug in seen_team_slugs:
+                raise TeamMappingError(
+                    f"Multiple SofaScore teams map to {slug!r} in season "
+                    f"{source_season}."
+                )
+            seen_team_slugs.add(slug)
+            output_rows.append(
+                TeamSeasonPossession(
+                    source_season=source_season,
+                    target_season=target_season,
+                    source_season_start_year=start_year,
+                    sofascore_season_id=season_id,
+                    team=canonical_name,
+                    team_slug=slug,
+                    sofascore_team_name=team.name,
+                    sofascore_team_id=team.team_id,
+                    average_possession_pct=possession,
+                    matches_recorded=matches,
+                    source_url=source_url,
+                )
+            )
+
+        coverage = complete_count / len(teams)
+        meets = coverage >= threshold
+        if meets:
+            qualifying_targets.append(target_season)
+        coverage_rows.append(
+            {
+                "scope": "season",
+                "source_season": source_season,
+                "target_season": target_season,
+                "team": "",
+                "expected_teams": len(teams),
+                "available_team_averages": complete_count,
+                "coverage": coverage,
+                "threshold": threshold,
+                "meets_threshold": meets,
+                "model_b_period_start": "",
+            }
+        )
+        for row in output_rows[-len(teams) :]:
+            available = int(row.average_possession_pct is not None)
+            coverage_rows.append(
+                {
+                    "scope": "team",
+                    "source_season": source_season,
+                    "target_season": target_season,
+                    "team": row.team,
+                    "expected_teams": 1,
+                    "available_team_averages": available,
+                    "coverage": float(available),
+                    "threshold": threshold,
+                    "meets_threshold": bool(available),
+                    "model_b_period_start": "",
+                }
+            )
+
+    model_b_period_start = min(qualifying_targets) if qualifying_targets else None
+    for row in coverage_rows:
+        if row["scope"] == "season":
+            row["model_b_period_start"] = model_b_period_start or ""
+
+    output_rows.sort(key=lambda row: (row.source_season, row.team_slug))
+    serialized = []
+    for row in output_rows:
+        values = row.__dict__.copy()
+        values["average_possession_pct"] = (
+            "" if row.average_possession_pct is None else row.average_possession_pct
+        )
+        values["matches_recorded"] = (
+            "" if row.matches_recorded is None else row.matches_recorded
+        )
+        serialized.append(values)
+
+    output_path = project_root / "data" / "processed" / "team_season_possession.csv"
+    coverage_path = project_root / "reports" / "possession_coverage.csv"
+    _write_csv_atomic(serialized, TEAM_SEASON_POSSESSION_COLUMNS, output_path)
+    _write_csv_atomic(coverage_rows, POSSESSION_COVERAGE_COLUMNS, coverage_path)
+    return output_rows, model_b_period_start, output_path, coverage_path
+
+
+def collect_possession_averages(
+    start_years: Sequence[int],
+    max_requests: int,
+    *,
+    project_root: Path = PROJECT_ROOT,
+    opener: Callable[..., Any] = urlopen,
+    timeout: float = REQUEST_TIMEOUT_SECONDS,
+    attempts: int = DEFAULT_ATTEMPTS,
+    request_delay: float = DEFAULT_REQUEST_DELAY_SECONDS,
+    sleep_fn: Callable[[float], None] = time.sleep,
+) -> CollectionSummary:
+    """Collect requested seasons within a strict budget and resume from cache."""
+    project_root = project_root.resolve()
+    requested = tuple(sorted(set(start_years)))
+    if not requested:
+        raise SofaScoreConfigurationError("At least one season is required.")
+    if isinstance(max_requests, bool) or max_requests <= 0:
+        raise SofaScoreConfigurationError("--max-requests must be positive.")
+    if timeout <= 0 or attempts <= 0 or request_delay < 0:
+        raise SofaScoreConfigurationError(
+            "Timeout and attempts must be positive; request delay cannot be negative."
+        )
+    configured_years = {
+        int(season.label[:4])
+        for season in load_seasons(project_root / "config" / "seasons.json")
+    }
+    unknown = sorted(set(requested).difference(configured_years))
+    if unknown:
+        raise SofaScoreConfigurationError(
+            "Requested seasons are outside config/seasons.json: "
+            + ", ".join(str(year) for year in unknown)
+        )
+
+    raw_directory = project_root / "data" / "raw" / "sofascore"
+    budget = _RequestBudget(max_requests)
+    seasons_cache = raw_directory / "seasons.json"
+    seasons_payload, _ = _load_or_fetch(
+        seasons_path(),
+        seasons_cache,
+        project_root=project_root,
+        endpoint=SEASONS_ENDPOINT,
+        season_code="all",
+        season_id=None,
+        team_id=None,
+        team_name=None,
+        parser=parse_seasons,
+        budget=budget,
+        opener=opener,
+        timeout=timeout,
+        attempts=attempts,
+        sleep_fn=sleep_fn,
+        request_delay=request_delay,
+    )
+    seasons_by_year = {season.start_year: season for season in parse_seasons(seasons_payload)}
+    missing = [year for year in requested if year not in seasons_by_year]
+    if missing:
+        raise SofaScoreResponseError(
+            "SofaScore season directory does not contain: "
+            + ", ".join(str(year) for year in missing)
+        )
+
+    teams_found = 0
+    cached_statistics = 0
+    downloaded_statistics = 0
+    failed_statistics = 0
+    seasons_found = 0
+    stopped = False
+    for start_year in requested:
+        season = seasons_by_year[start_year]
+        standings_cache = raw_directory / f"standings_{season.season_id}.json"
+        try:
+            standings_payload, _ = _load_or_fetch(
+                standings_path(season.season_id),
+                standings_cache,
+                project_root=project_root,
+                endpoint=STANDINGS_ENDPOINT,
+                season_code=season.season_code,
+                season_id=season.season_id,
+                team_id=None,
+                team_name=None,
+                parser=parse_standing_teams,
+                budget=budget,
+                opener=opener,
+                timeout=timeout,
+                attempts=attempts,
+                sleep_fn=sleep_fn,
+                request_delay=request_delay,
+            )
+        except RequestBudgetReached:
+            stopped = True
+            break
+        teams = parse_standing_teams(standings_payload)
+        seasons_found += 1
+        teams_found += len(teams)
+        for team in teams:
+            stats_cache = raw_directory / (
+                f"team_{team.team_id}_season_{season.season_id}_statistics_overall.json"
+            )
+            try:
+                _, cached = _load_or_fetch(
+                    team_statistics_path(team.team_id, season.season_id),
+                    stats_cache,
+                    project_root=project_root,
+                    endpoint=TEAM_STATISTICS_ENDPOINT,
+                    season_code=season.season_code,
+                    season_id=season.season_id,
+                    team_id=team.team_id,
+                    team_name=team.name,
+                    parser=parse_team_statistics,
+                    budget=budget,
+                    opener=opener,
+                    timeout=timeout,
+                    attempts=attempts,
+                    sleep_fn=sleep_fn,
+                    request_delay=request_delay,
+                )
+            except RequestBudgetReached:
+                stopped = True
+                break
+            except SofaScoreRequestError:
+                failed_statistics += 1
+                continue
+            if cached:
+                cached_statistics += 1
+            else:
+                downloaded_statistics += 1
+        if stopped:
+            break
+
+    rows, period_start, output_path, coverage_path = build_processed_possession(
+        project_root
+    )
+    complete_rows = sum(row.average_possession_pct is not None for row in rows)
+    return CollectionSummary(
+        requested_seasons=requested,
+        seasons_found=seasons_found,
+        teams_found=teams_found,
+        statistics_cached=cached_statistics,
+        statistics_downloaded=downloaded_statistics,
+        failed_statistics=failed_statistics,
+        requests_made=budget.used,
+        stopped_before_budget=stopped,
+        output_rows=len(rows),
+        complete_rows=complete_rows,
+        model_b_period_start=period_start,
+        output_path=output_path,
+        coverage_path=coverage_path,
     )
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Build the Phase 6 possession-collector CLI."""
     parser = argparse.ArgumentParser(
-        description="Collect immutable API-Football EPL possession responses."
+        description=(
+            "Collect immutable SofaScore EPL team-season possession averages. "
+            "A target season must use only the preceding source season."
+        )
     )
-    parser.add_argument(
-        "--season",
-        type=int,
-        required=True,
-        metavar="YEAR",
-        help="configured EPL season start year, such as 2025",
+    selection = parser.add_mutually_exclusive_group(required=True)
+    selection.add_argument(
+        "--season", type=int, metavar="YEAR", help="one EPL season start year"
     )
+    selection.add_argument(
+        "--all",
+        action="store_true",
+        help="collect the configured default range 2017/18 through 2025/26",
+    )
+    parser.add_argument("--first-season", type=int, default=DEFAULT_FIRST_SEASON)
+    parser.add_argument("--last-season", type=int, default=DEFAULT_LAST_SEASON)
+    parser.add_argument("--max-requests", type=int, default=250, metavar="N")
     parser.add_argument(
-        "--max-requests",
-        type=int,
-        required=True,
-        metavar="N",
-        help="strict maximum number of API requests for this run",
+        "--request-delay",
+        type=float,
+        default=DEFAULT_REQUEST_DELAY_SECONDS,
+        metavar="SECONDS",
     )
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Run the bounded API-Football collection CLI without printing the key."""
     arguments = build_parser().parse_args(argv)
+    if arguments.all:
+        if arguments.first_season > arguments.last_season:
+            print("error: --first-season must not exceed --last-season", file=sys.stderr)
+            return 1
+        years = range(arguments.first_season, arguments.last_season + 1)
+    else:
+        years = (arguments.season,)
     try:
-        summary = collect_season(
-            arguments.season,
+        summary = collect_possession_averages(
+            years,
             arguments.max_requests,
-            api_key=os.environ.get(API_KEY_ENVIRONMENT_VARIABLE),
+            request_delay=arguments.request_delay,
         )
     except (PossessionCollectionError, ManifestError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
-    print(f"season={summary.season_year}")
-    print(f"fixtures={summary.fixture_count}")
+    print("source=sofascore")
+    print("requested_seasons=" + ",".join(str(year) for year in summary.requested_seasons))
+    print(f"seasons_found={summary.seasons_found}")
+    print(f"teams_found={summary.teams_found}")
     print(f"statistics_cached={summary.statistics_cached}")
     print(f"statistics_downloaded={summary.statistics_downloaded}")
+    print(f"failed_statistics={summary.failed_statistics}")
     print(f"requests_made={summary.requests_made}")
-    print(
-        "stopped_before_quota="
-        f"{str(summary.stopped_before_quota).lower()}"
-    )
-    if summary.stopped_before_quota:
-        print(
-            "resume=rerun the same command; "
-            "verified cached responses will be skipped"
-        )
-    return 0
+    print(f"stopped_before_budget={str(summary.stopped_before_budget).lower()}")
+    print(f"complete_rows={summary.complete_rows}/{summary.output_rows}")
+    print(f"model_b_period_start={summary.model_b_period_start or 'none'}")
+    print(f"output={summary.output_path.relative_to(PROJECT_ROOT).as_posix()}")
+    print(f"coverage={summary.coverage_path.relative_to(PROJECT_ROOT).as_posix()}")
+    if summary.stopped_before_budget:
+        print("resume=rerun the same command; verified caches will be skipped")
+    return 1 if summary.failed_statistics else 0
 
 
 if __name__ == "__main__":

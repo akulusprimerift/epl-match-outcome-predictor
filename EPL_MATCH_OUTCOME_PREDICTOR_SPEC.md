@@ -73,7 +73,7 @@ The probabilities must be based only on information available before kickoff.
 - Supporting leagues other than the EPL.
 - Player-level modeling, injuries, lineups, xG, xA, or event-sequence models.
 - A web application, API, database, or live production deployment.
-- Scraping undocumented SofaScore, FotMob, Fantasy Premier League, or similar endpoints.
+- Collecting match-level possession when a leakage-safe team-season average is sufficient.
 - Opening or optimizing against the final 2025/26 holdout before the pipeline is frozen.
 
 These may be considered only after all phases in this document are complete.
@@ -165,38 +165,40 @@ Required source columns:
 
 Football-Data betting-odds columns may remain in raw files but must not enter the version-1 feature table.
 
-### 4.2 Source B: API-Football
+### 4.2 Source B: SofaScore team-season statistics
 
-**Purpose:** Possession enrichment for completed recent EPL fixtures.  
-**EPL league ID:** `39`.  
-**Authentication:** `API_FOOTBALL_KEY` environment variable.  
-**Credential policy:** Store locally in `.env` or the operating-system environment; never commit it.
+**Purpose:** Possession-style enrichment using one EPL season average per team.
+**EPL unique-tournament ID:** `17`.
+**Authentication:** None.
+**Reliability note:** These are public JSON endpoints used by SofaScore's site, not a
+versioned public API contract. Cache exact responses and fail clearly if the schema
+changes.
 
 Required endpoints:
 
 ```text
-GET /fixtures?league=39&season={YEAR}&status=FT
-GET /fixtures/statistics?fixture={FIXTURE_ID}
+GET /unique-tournament/17/seasons
+GET /unique-tournament/17/season/{SEASON_ID}/standings/total
+GET /team/{TEAM_ID}/unique-tournament/17/season/{SEASON_ID}/statistics/overall
 ```
 
 Required extracted values:
 
-- Fixture ID
-- Match date
-- Home team ID and name
-- Away team ID and name
-- Home `Ball Possession`
-- Away `Ball Possession`
-- Optional audit fields: total shots and shots on target
+- Source season and SofaScore season ID
+- Team ID and exact provider team name
+- `statistics.averageBallPossession`
+- `statistics.matches`
+- Source URL
 
-Possession parsing rules:
+Possession parsing and timing rules:
 
-- Convert strings such as `"56%"` to floating-point `56.0`.
+- Parse `averageBallPossession` as a floating-point percentage from 0 through 100.
 - Preserve `null` as missing; never silently convert it to zero.
-- Do not require the two teams to sum to exactly 100 because of rounding.
-- Cache the original JSON response before extraction.
-- Skip an API request if the fixture's raw response already exists.
-- Stop cleanly before exceeding the account's request quota.
+- Cache every original JSON response before deterministic extraction.
+- Skip a request when a manifested cache has the expected checksum.
+- Throttle requests, retry transient failures, and stop before a configured request budget.
+- A fixture in season `N` may use only the team average from completed season `N-1`.
+- Never attach a final season average to fixtures within that same season.
 
 ### 4.3 Source C: StatsBomb Open Data
 
@@ -208,7 +210,7 @@ The following directories are append-only:
 
 ```text
 data/raw/football_data/
-data/raw/api_football/
+data/raw/sofascore/
 ```
 
 Downloaded files must never be manually corrected. Every normalization must occur in `src/clean_data.py` or a later deterministic transformation.
@@ -229,7 +231,8 @@ Create `data/raw/manifest.json` with one record per retrieved file or response:
 }
 ```
 
-API records additionally include `fixture_id` and `endpoint`.
+SofaScore records additionally include `endpoint`, `sofascore_season_id`, and,
+for team-statistics responses, `sofascore_team_id` and `sofascore_team_name`.
 
 ---
 
@@ -254,7 +257,8 @@ Requirements:
 - Unique within the canonical match table.
 - Stable across repeated pipeline runs.
 - Not dependent on DataFrame row order.
-- Used to join Football-Data and API-Football records.
+- Used as the stable Football-Data fixture identity. The SofaScore source joins
+  separately at team-season level through canonical team slugs.
 
 ### 5.2 Team-name mapping
 
@@ -263,7 +267,7 @@ Create `config/team_name_map.csv`:
 ```csv
 provider,provider_team_name,canonical_team_name,canonical_team_slug
 football_data,Man United,Manchester United,manchester-united
-api_football,Manchester United,Manchester United,manchester-united
+sofascore,Manchester United,Manchester United,manchester-united
 ```
 
 Rules:
@@ -301,7 +305,35 @@ api_fixture_id
 
 `home_possession`, `away_possession`, and `api_fixture_id` may be missing before the enrichment phase.
 
-### 5.4 Team-match history table
+The nullable per-fixture possession fields remain in the canonical schema for
+backward compatibility but are not populated by the SofaScore team-season source.
+Team-season averages are stored separately in
+`data/processed/team_season_possession.csv`.
+
+### 5.4 Team-season possession table
+
+Output: `data/processed/team_season_possession.csv`
+
+Required columns, in order:
+
+```text
+source_season
+target_season
+source_season_start_year
+sofascore_season_id
+team
+team_slug
+sofascore_team_name
+sofascore_team_id
+average_possession_pct
+matches_recorded
+source_url
+```
+
+`target_season` is always the season immediately following `source_season`.
+This makes the leakage-safe lag explicit in the data contract.
+
+### 5.5 Team-match history table
 
 Output: `data/processed/team_match_history.csv`
 
@@ -334,7 +366,7 @@ points = 1 if goals_for == goals_against
 points = 0 otherwise
 ```
 
-### 5.5 Final model table
+### 5.6 Final model table
 
 Output: `data/processed/model_dataset.csv`
 
@@ -383,7 +415,7 @@ For both home and away teams:
 | `goals_for_avg_5` | Mean goals scored over previous five matches |
 | `goals_against_avg_5` | Mean goals conceded over previous five matches |
 | `shots_avg_5` | Mean shots over previous five matches |
-| `possession_avg_5` | Mean possession over previous five possession-complete matches |
+| `previous_season_possession` | Team's average possession from the immediately preceding completed EPL season |
 | `form_points_5` | Sum of league points over previous five matches |
 | `overall_ppg_5` | Mean points over previous five matches |
 | `venue_ppg_5` | Mean points from previous five matches at the same home/away venue role |
@@ -408,7 +440,7 @@ Positive edge values must consistently favor the home team.
 goals_scored_edge = home_goals_for_avg_5 - away_goals_for_avg_5
 defensive_edge = away_goals_against_avg_5 - home_goals_against_avg_5
 shots_edge = home_shots_avg_5 - away_shots_avg_5
-possession_edge = home_possession_avg_5 - away_possession_avg_5
+possession_edge = home_previous_season_possession - away_previous_season_possession
 form_edge = home_form_points_5 - away_form_points_5
 venue_edge = home_venue_ppg_5 - away_venue_ppg_5
 history_edge = home_history_matches - away_history_matches
@@ -448,10 +480,11 @@ Policy:
 ### 6.6 Possession coverage policy
 
 - Model A does not use possession.
-- Model B requires complete home and away possession for every contributing history row and current feature row.
-- Generate a coverage report by season and team.
-- Declare the first season with acceptable possession coverage instead of hard-coding an assumption.
-- Default minimum acceptable coverage: 95% of completed EPL fixtures in a season.
+- Model B uses each club's immediately preceding completed EPL season average.
+- Generate source-season and team coverage rows.
+- Declare the first target season whose preceding source season has acceptable coverage.
+- Default minimum acceptable coverage: 95% of EPL teams in the source season.
+- A promoted club without a preceding EPL average is missing and follows training-only median imputation; no Championship data may be substituted.
 - Model A-Matched and Model B must use identical row IDs in training, validation, and testing.
 
 ---
@@ -707,11 +740,12 @@ epl-match-outcome-predictor/
 │   ├── raw/
 │   │   ├── manifest.json
 │   │   ├── football_data/
-│   │   └── api_football/
+│   │   └── sofascore/
 │   └── processed/
 │       ├── canonical_matches.csv
 │       ├── team_match_history.csv
-│       └── model_dataset.csv
+│       ├── model_dataset.csv
+│       └── team_season_possession.csv
 ├── models/
 │   ├── model_a_xgb.json
 │   ├── model_a_matched_xgb.json
@@ -758,7 +792,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .DS_Store
-data/raw/api_football/*.json
+data/raw/sofascore/*.json
 models/*.json
 ```
 
@@ -1062,44 +1096,47 @@ Do not collect possession data.
 
 ---
 
-## Phase 6 — Possession Collection and Join
+## Phase 6 — SofaScore Team-Season Possession Collection
 
 ### Objective
 
-Build a resumable, quota-aware possession enrichment pipeline.
+Build a resumable, rate-limited pipeline for EPL team-season possession averages.
 
 ### Tasks
 
-- Add `.env.example` entry for `API_FOOTBALL_KEY` without a real value.
 - Implement `src/collect_possession.py` using the standard library.
-- Retrieve completed EPL fixture IDs by season.
-- Cache raw statistics JSON per fixture.
-- Implement safe resume and quota-stop behavior.
-- Parse home and away possession.
-- Maintain API team-name mappings.
-- Join API fixtures to canonical matches using date and canonical teams.
-- Produce unmatched and ambiguous join reports.
-- Update canonical processed data through a new deterministic build; do not edit raw Football-Data files.
-- Generate `reports/possession_coverage.csv` by season and team.
-- Determine the possession-complete training window using the 95% rule.
+- Discover SofaScore season IDs rather than hard-coding them.
+- Retrieve the EPL standings to enumerate exact season teams.
+- Cache the season directory, standings, and team-statistics JSON responses.
+- Implement safe resume, retry, throttling, and request-budget behavior.
+- Parse `averageBallPossession` and `matches` without converting missing values to zero.
+- Maintain exact SofaScore team-name mappings.
+- Produce `data/processed/team_season_possession.csv` deterministically.
+- Generate `reports/possession_coverage.csv` by source season and team.
+- Record the next target season explicitly so Phase 7 cannot use a same-season final average.
+- Determine the first eligible Model B target season using the 95% team-coverage rule.
 
 ### CLI contract
 
 ```bash
-python -m src.collect_possession --season 2025 --max-requests 90
-python -m src.clean_data --include-possession
+python -m src.collect_possession --season 2024 --max-requests 25
+python -m src.collect_possession --all --max-requests 250
 ```
 
 ### Acceptance criteria
 
-- No API key appears in Git-tracked files or logs.
-- Cached fixtures are not requested twice.
+- No credential is required or stored.
+- Manifested caches are not requested twice.
 - Collector can stop and resume without data loss.
-- Possession strings parse correctly.
+- Transient request failures use bounded retries and modest throttling.
+- Season IDs and teams are derived from the SofaScore responses.
+- Average-possession values parse correctly.
 - Missing possession remains missing, not zero.
-- Every automatic join is one-to-one.
-- Unmatched or ambiguous fixtures are explicitly reported.
-- Coverage report identifies the valid Model B period.
+- Every provider team name resolves through the explicit mapping table.
+- The processed table has one row per source season and team.
+- Coverage is measured against expected teams from the season standings.
+- Every row explicitly maps source season `N-1` to target season `N`.
+- Coverage report identifies the first eligible Model B target season.
 
 ### Stop condition
 
@@ -1111,11 +1148,12 @@ Do not train Model B.
 
 ### Objective
 
-Measure the incremental value of possession without sample-selection confounding.
+Measure the incremental value of lagged team-season possession without sample-selection confounding.
 
 ### Tasks
 
-- Construct one possession-complete row set.
+- Join each target fixture to both clubs' immediately preceding EPL season averages.
+- Construct one possession-eligible row set after the declared promoted-team policy.
 - Freeze identical match-ID lists for Model A-Matched and Model B.
 - Train Model A-Matched with baseline features only.
 - Train Model B with baseline plus possession features.
@@ -1135,7 +1173,10 @@ python -m src.compare_models --models model_a_matched model_b
 ### Acceptance criteria
 
 - Both models use identical match IDs per split.
-- Only possession-related columns differ between their feature sets.
+- Only `home_previous_season_possession`,
+  `away_previous_season_possession`, and `possession_edge` differ between their
+  feature sets.
+- No target fixture uses a possession average calculated from its own season.
 - Comparison report states whether Model B passes each acceptance rule.
 - Holdout remains unopened.
 
@@ -1415,7 +1456,8 @@ Minimum fields:
 |---|---|
 | EPL-only data | Preserve scope and avoid cross-league distribution shifts. |
 | Football-Data as primary history | Free, stable, season-based CSVs with results and shots. |
-| API-Football only for enrichment | Possession is available, but free historical range and quota are limited. |
+| SofaScore team-season averages for enrichment | Avoids hundreds of match-statistics requests per season while retaining a broad possession-style signal. |
+| Previous-season lag for possession | Prevents a final season average from leaking future fixtures into earlier predictions. |
 | Two matched models for possession experiment | Prevent possession value from being confounded by different row coverage. |
 | One row per fixture | Avoid contradictory mirrored predictions. |
 | Home-oriented target encoding | Directly maps one fixture to H/D/A probabilities. |
@@ -1432,8 +1474,7 @@ Minimum fields:
 
 - [Football-Data EPL downloads](https://www.football-data.co.uk/englandm.php)
 - [Football-Data column definitions](https://www.football-data.co.uk/notes.txt)
-- [API-Football documentation](https://www.api-football.com/documentation-v3)
-- [API-Football pricing and free-tier limits](https://www.api-football.com/pricing)
+- [SofaScore EPL season directory](https://www.sofascore.com/api/v1/unique-tournament/17/seasons)
 - [StatsBomb Open Data](https://github.com/hudl/open-data)
 - [pandas GroupBy documentation](https://pandas.pydata.org/docs/user_guide/groupby.html)
 - [scikit-learn TimeSeriesSplit](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html)
@@ -1445,6 +1486,6 @@ Minimum fields:
 
 ## 17. Current Next Action
 
-The project must begin with **Phase 0 — Repository Bootstrap**.
-
-Codex must not download match data, build features, or train a model until Phase 0 is complete and approved.
+Phases 0 through 5 are complete. Phase 6 is being revised to use SofaScore
+team-season possession averages. Complete and validate the revised Phase 6
+collector before revising or running the Phase 7 matched experiment.

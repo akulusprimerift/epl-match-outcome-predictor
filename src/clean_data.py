@@ -15,7 +15,7 @@ from typing import Mapping, Sequence
 
 import pandas as pd
 
-from src.collect_possession import (
+from src.api_football_legacy import (
     API_TEAM_PROVIDER,
     ApiPossessionFixture,
     PossessionCollectionError,
