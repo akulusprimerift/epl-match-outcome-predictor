@@ -4,14 +4,12 @@ A reproducible Python project for predicting English Premier League match
 outcomes as away-win, draw, and home-win probabilities using only information
 available before kickoff.
 
-The repository has completed Phases 0 through 5 and contains a revised
-**Phase 6 SofaScore team-season possession collector**. It contains
+The repository has completed Phases 0 through 6 and contains a validated
+**SofaScore team-season possession dataset**. It contains
 immutable raw EPL match files, leakage-safe pre-match features, frozen
 chronological splits, majority/logistic-regression benchmarks, and a tuned
 long-history XGBoost model. Model A-Matched and Model B have not been trained,
-and the final 2025/26 holdout has not been evaluated. The existing Phase 7
-implementation still represents the old match-level design and must be revised
-before it is run against the new team-season table.
+and the final 2025/26 holdout has not been evaluated. Phase 7 is the next phase.
 
 ## Requirements
 
@@ -156,11 +154,14 @@ budget:
 python -m src.collect_possession --all --max-requests 250
 ```
 
-The collector discovers SofaScore season IDs, gets the teams from each season's
-standings, and retrieves one `averageBallPossession` value per team. Exact JSON
-responses are cached under `data/raw/sofascore/`, checksummed in
-`data/raw/manifest.json`, and skipped on rerun. Requests are throttled and use
-bounded retries. Rerunning the same command safely resumes a budget-limited run.
+The collector can discover SofaScore season IDs, get the teams from each
+season's standings, and retrieve one `averageBallPossession` value per team.
+Because SofaScore currently returns HTTP 403 to this environment's automated
+JSON requests, the repository also accepts the manifested SofaScore web export
+already stored under `data/raw/sofascore/`. Raw inputs are checksummed in
+`data/raw/manifest.json`, never overwritten, and skipped on rerun. The current
+export contains all 20 EPL teams for every source season from 2017/18 through
+2025/26, with 38 matches recorded for every team-season.
 
 The deterministic output is `data/processed/team_season_possession.csv`, with
 coverage recorded in `reports/possession_coverage.csv`. Each source-season row
@@ -170,9 +171,9 @@ one-season lag is mandatory to prevent future leakage.
 
 ## Run the matched possession experiment
 
-Phase 7 must first be revised to join the new lagged team-season table. After
-that revision and sufficient 95% source-season team coverage, the intended
-commands remain:
+The validated source-season coverage is 100%, so the first eligible Model B
+target season is 2018/19. Phase 7 joins the lagged team-season table with these
+commands:
 
 ```bash
 python -m src.train_xgboost --model-name model_a_matched --feature-set baseline_matched

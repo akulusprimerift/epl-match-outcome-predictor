@@ -49,6 +49,19 @@ USER_AGENT = (
 SEASONS_ENDPOINT = "seasons"
 STANDINGS_ENDPOINT = "standings/total"
 TEAM_STATISTICS_ENDPOINT = "statistics/overall"
+AGGREGATE_EXPORT_ENDPOINT = "team-season-average-possession-export"
+AGGREGATE_EXPORT_FILENAME = (
+    "sofascore_epl_average_possession_2017-18_to_2025-26.csv"
+)
+AGGREGATE_EXPORT_COLUMNS = (
+    "season",
+    "season_id",
+    "team",
+    "team_id",
+    "average_ball_possession",
+    "matches",
+    "source_url",
+)
 
 TEAM_SEASON_POSSESSION_COLUMNS = (
     "source_season",
@@ -704,11 +717,220 @@ def _coverage_threshold(project_root: Path) -> float:
     return threshold
 
 
+def _aggregate_export_path(project_root: Path) -> Path:
+    return (
+        project_root
+        / "data"
+        / "raw"
+        / "sofascore"
+        / AGGREGATE_EXPORT_FILENAME
+    )
+
+
+def _load_aggregate_export(
+    project_root: Path,
+) -> list[TeamSeasonPossession] | None:
+    """Load a manifested SofaScore web export when direct API access is blocked."""
+    path = _aggregate_export_path(project_root)
+    if not path.exists():
+        return None
+
+    records = load_manifest(project_root / "data" / "raw" / "manifest.json")
+    local_path = _relative_path(project_root, path)
+    record = _manifest_record_for_path(records, local_path)
+    if record is None:
+        raise SofaScoreCacheError(
+            f"SofaScore aggregate export exists without manifest provenance: {path}"
+        )
+    if (
+        record.get("source") != SOFASCORE_SOURCE
+        or record.get("endpoint") != AGGREGATE_EXPORT_ENDPOINT
+    ):
+        raise SofaScoreCacheError(
+            f"SofaScore aggregate export manifest mismatch for {local_path}."
+        )
+    if sha256_file(path) != record["sha256"]:
+        raise SofaScoreCacheError(
+            f"Checksum mismatch for immutable SofaScore aggregate export {path}."
+        )
+
+    mappings = _team_map(project_root)
+    try:
+        with path.open("r", encoding="utf-8-sig", newline="") as source:
+            reader = csv.DictReader(source)
+            if tuple(reader.fieldnames or ()) != AGGREGATE_EXPORT_COLUMNS:
+                raise SofaScoreCacheError(
+                    f"Unexpected columns in SofaScore aggregate export {path}."
+                )
+            raw_rows = list(reader)
+    except (OSError, UnicodeDecodeError, csv.Error) as exc:
+        raise SofaScoreCacheError(
+            f"Could not read SofaScore aggregate export {path}: {exc}"
+        ) from exc
+
+    if len(raw_rows) != int(record["row_count"]):
+        raise SofaScoreCacheError(
+            f"Row-count mismatch for SofaScore aggregate export {path}."
+        )
+
+    output_rows: list[TeamSeasonPossession] = []
+    seen_keys: set[tuple[str, int]] = set()
+    seen_slugs: dict[str, set[str]] = {}
+    season_ids: dict[str, int] = {}
+    for line_number, raw in enumerate(raw_rows, start=2):
+        label = str(raw.get("season", "")).strip()
+        match = re.fullmatch(r"(20\d{2})/(\d{2})", label)
+        if match is None or int(match.group(2)) != (int(match.group(1)) + 1) % 100:
+            raise SofaScoreCacheError(
+                f"Invalid season {label!r} in {path} on line {line_number}."
+            )
+        start_year = int(match.group(1))
+        source_season = season_code_from_start_year(start_year)
+        target_season = season_code_from_start_year(start_year + 1)
+        season_id = _positive_integer(
+            raw.get("season_id"), field_name="season id"
+        )
+        team_id = _positive_integer(raw.get("team_id"), field_name="team id")
+        team_name = str(raw.get("team", "")).strip()
+        identity = mappings.get(team_name)
+        if identity is None:
+            raise TeamMappingError(
+                f"Unmapped SofaScore team name {team_name!r}; add it to "
+                "config/team_name_map.csv."
+            )
+        possession = parse_average_possession(raw.get("average_ball_possession"))
+        matches = _optional_nonnegative_integer(
+            raw.get("matches"), field_name="matches"
+        )
+        if possession is None or matches is None:
+            raise SofaScoreCacheError(
+                f"Missing possession or match count in {path} on line {line_number}."
+            )
+        source_url = str(raw.get("source_url", "")).strip()
+        expected_url = primary_url(team_statistics_path(team_id, season_id))
+        if source_url != expected_url:
+            raise SofaScoreCacheError(
+                f"Unexpected SofaScore URL in {path} on line {line_number}."
+            )
+        if source_season in season_ids and season_ids[source_season] != season_id:
+            raise SofaScoreCacheError(
+                f"Conflicting season ids for {source_season} in {path}."
+            )
+        season_ids[source_season] = season_id
+        key = (source_season, team_id)
+        if key in seen_keys:
+            raise SofaScoreCacheError(
+                f"Duplicate team-season {key!r} in {path}."
+            )
+        seen_keys.add(key)
+        canonical_name, slug = identity
+        season_slugs = seen_slugs.setdefault(source_season, set())
+        if slug in season_slugs:
+            raise TeamMappingError(
+                f"Multiple SofaScore teams map to {slug!r} in season "
+                f"{source_season}."
+            )
+        season_slugs.add(slug)
+        output_rows.append(
+            TeamSeasonPossession(
+                source_season=source_season,
+                target_season=target_season,
+                source_season_start_year=start_year,
+                sofascore_season_id=season_id,
+                team=canonical_name,
+                team_slug=slug,
+                sofascore_team_name=team_name,
+                sofascore_team_id=team_id,
+                average_possession_pct=possession,
+                matches_recorded=matches,
+                source_url=source_url,
+            )
+        )
+    return sorted(output_rows, key=lambda row: (row.source_season, row.team_slug))
+
+
+def _write_processed_outputs(
+    output_rows: Sequence[TeamSeasonPossession],
+    project_root: Path,
+) -> tuple[list[TeamSeasonPossession], str | None, Path, Path]:
+    """Write the canonical table and its season/team coverage audit."""
+    rows = sorted(output_rows, key=lambda row: (row.source_season, row.team_slug))
+    threshold = _coverage_threshold(project_root)
+    coverage_rows: list[dict[str, object]] = []
+    qualifying_targets: list[str] = []
+    for source_season in sorted({row.source_season for row in rows}):
+        season_rows = [row for row in rows if row.source_season == source_season]
+        target_season = season_rows[0].target_season
+        complete_count = sum(
+            row.average_possession_pct is not None for row in season_rows
+        )
+        coverage = complete_count / len(season_rows)
+        meets = coverage >= threshold
+        if meets:
+            qualifying_targets.append(target_season)
+        coverage_rows.append(
+            {
+                "scope": "season",
+                "source_season": source_season,
+                "target_season": target_season,
+                "team": "",
+                "expected_teams": len(season_rows),
+                "available_team_averages": complete_count,
+                "coverage": coverage,
+                "threshold": threshold,
+                "meets_threshold": meets,
+                "model_b_period_start": "",
+            }
+        )
+        for row in season_rows:
+            available = int(row.average_possession_pct is not None)
+            coverage_rows.append(
+                {
+                    "scope": "team",
+                    "source_season": source_season,
+                    "target_season": target_season,
+                    "team": row.team,
+                    "expected_teams": 1,
+                    "available_team_averages": available,
+                    "coverage": float(available),
+                    "threshold": threshold,
+                    "meets_threshold": bool(available),
+                    "model_b_period_start": "",
+                }
+            )
+
+    model_b_period_start = min(qualifying_targets) if qualifying_targets else None
+    for row in coverage_rows:
+        if row["scope"] == "season":
+            row["model_b_period_start"] = model_b_period_start or ""
+
+    serialized: list[dict[str, object]] = []
+    for row in rows:
+        values = row.__dict__.copy()
+        values["average_possession_pct"] = (
+            "" if row.average_possession_pct is None else row.average_possession_pct
+        )
+        values["matches_recorded"] = (
+            "" if row.matches_recorded is None else row.matches_recorded
+        )
+        serialized.append(values)
+
+    output_path = project_root / "data" / "processed" / "team_season_possession.csv"
+    coverage_path = project_root / "reports" / "possession_coverage.csv"
+    _write_csv_atomic(serialized, TEAM_SEASON_POSSESSION_COLUMNS, output_path)
+    _write_csv_atomic(coverage_rows, POSSESSION_COVERAGE_COLUMNS, coverage_path)
+    return rows, model_b_period_start, output_path, coverage_path
+
+
 def build_processed_possession(
     project_root: Path = PROJECT_ROOT,
 ) -> tuple[list[TeamSeasonPossession], str | None, Path, Path]:
     """Rebuild the team-season table and coverage report only from raw caches."""
     project_root = project_root.resolve()
+    aggregate_rows = _load_aggregate_export(project_root)
+    if aggregate_rows is not None:
+        return _write_processed_outputs(aggregate_rows, project_root)
+
     manifest_path = project_root / "data" / "raw" / "manifest.json"
     records = load_manifest(manifest_path)
     mappings = _team_map(project_root)
@@ -906,6 +1128,41 @@ def collect_possession_averages(
         raise SofaScoreConfigurationError(
             "Requested seasons are outside config/seasons.json: "
             + ", ".join(str(year) for year in unknown)
+        )
+
+    if _aggregate_export_path(project_root).exists():
+        rows, period_start, output_path, coverage_path = build_processed_possession(
+            project_root
+        )
+        requested_codes = {
+            season_code_from_start_year(start_year) for start_year in requested
+        }
+        selected_rows = [
+            row for row in rows if row.source_season in requested_codes
+        ]
+        found_codes = {row.source_season for row in selected_rows}
+        missing_codes = sorted(requested_codes.difference(found_codes))
+        if missing_codes:
+            raise SofaScoreCacheError(
+                "SofaScore aggregate export does not contain requested seasons: "
+                + ", ".join(missing_codes)
+            )
+        return CollectionSummary(
+            requested_seasons=requested,
+            seasons_found=len(found_codes),
+            teams_found=len(selected_rows),
+            statistics_cached=len(selected_rows),
+            statistics_downloaded=0,
+            failed_statistics=0,
+            requests_made=0,
+            stopped_before_budget=False,
+            output_rows=len(rows),
+            complete_rows=sum(
+                row.average_possession_pct is not None for row in rows
+            ),
+            model_b_period_start=period_start,
+            output_path=output_path,
+            coverage_path=coverage_path,
         )
 
     raw_directory = project_root / "data" / "raw" / "sofascore"

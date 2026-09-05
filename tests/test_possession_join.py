@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from io import BytesIO
 import csv
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -11,6 +12,9 @@ import unittest
 from urllib.error import HTTPError
 
 from src.collect_possession import (
+    AGGREGATE_EXPORT_COLUMNS,
+    AGGREGATE_EXPORT_ENDPOINT,
+    AGGREGATE_EXPORT_FILENAME,
     POSSESSION_COVERAGE_COLUMNS,
     TEAM_SEASON_POSSESSION_COLUMNS,
     TeamMappingError,
@@ -227,6 +231,91 @@ class SofaScoreCollectorTests(unittest.TestCase):
         self._write_mapping(include_beta=False)
         with self.assertRaisesRegex(TeamMappingError, "Beta FC"):
             build_processed_possession(self.project_root)
+
+    def test_manifested_aggregate_export_skips_network_and_builds_outputs(self) -> None:
+        raw_dir = self.project_root / "data" / "raw" / "sofascore"
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        export_path = raw_dir / AGGREGATE_EXPORT_FILENAME
+        rows = [
+            {
+                "season": "2017/18",
+                "season_id": "1",
+                "team": "Alpha FC",
+                "team_id": "10",
+                "average_ball_possession": "55.5",
+                "matches": "38",
+                "source_url": (
+                    "https://www.sofascore.com/api/v1/team/10/unique-tournament/17/"
+                    "season/1/statistics/overall"
+                ),
+            },
+            {
+                "season": "2017/18",
+                "season_id": "1",
+                "team": "Beta FC",
+                "team_id": "20",
+                "average_ball_possession": "44.5",
+                "matches": "38",
+                "source_url": (
+                    "https://www.sofascore.com/api/v1/team/20/unique-tournament/17/"
+                    "season/1/statistics/overall"
+                ),
+            },
+        ]
+        with export_path.open("w", encoding="utf-8", newline="") as output:
+            writer = csv.DictWriter(output, fieldnames=AGGREGATE_EXPORT_COLUMNS)
+            writer.writeheader()
+            writer.writerows(rows)
+
+        manifest_path = self.project_root / "data" / "raw" / "manifest.json"
+        manifest_path.write_text(
+            json.dumps(
+                [
+                    {
+                        "acquisition_method": "sofascore-web-statistics",
+                        "endpoint": AGGREGATE_EXPORT_ENDPOINT,
+                        "local_path": export_path.relative_to(self.project_root).as_posix(),
+                        "retrieved_at_utc": "2026-09-05T06:25:55Z",
+                        "row_count": 2,
+                        "season": "1718",
+                        "sha256": hashlib.sha256(export_path.read_bytes()).hexdigest(),
+                        "source": "sofascore",
+                        "source_url": (
+                            "https://www.sofascore.com/api/v1/unique-tournament/17/seasons"
+                        ),
+                    }
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+        def fail_if_called(_request, timeout=30):
+            del timeout
+            raise AssertionError(
+                "network should not be used when the aggregate export exists"
+            )
+
+        summary = collect_possession_averages(
+            [2017],
+            1,
+            project_root=self.project_root,
+            opener=fail_if_called,
+            attempts=1,
+            request_delay=0,
+            sleep_fn=lambda seconds: None,
+        )
+
+        self.assertEqual(summary.requests_made, 0)
+        self.assertEqual(summary.complete_rows, 2)
+        self.assertEqual(summary.output_rows, 2)
+        self.assertEqual(summary.model_b_period_start, "1819")
+
+        with summary.output_path.open("r", encoding="utf-8", newline="") as source:
+            processed = list(csv.DictReader(source))
+        self.assertEqual(len(processed), 2)
+        self.assertEqual(processed[0]["source_season"], "1718")
+        self.assertEqual(processed[0]["team"], "Alpha")
+        self.assertEqual(processed[0]["average_possession_pct"], "55.5")
 
     def test_forbidden_primary_host_falls_back_to_secondary_host(self) -> None:
         calls: list[str] = []

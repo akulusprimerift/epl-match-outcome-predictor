@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime
 from pathlib import Path
+import re
 from typing import Sequence
 
 import numpy as np
@@ -15,25 +15,25 @@ from src.build_history import (
     HistoryError,
     build_team_history_frame,
     read_canonical_matches,
-    validate_team_history,
     write_csv_atomic,
 )
-from src.clean_data import (
-    PROJECT_ROOT,
-    build_possession_coverage,
-    load_possession_coverage_threshold,
+from src.clean_data import PROJECT_ROOT
+from src.collect_possession import (
+    PossessionCollectionError,
+    TEAM_SEASON_POSSESSION_COLUMNS,
+    build_processed_possession,
+    season_code_from_start_year,
 )
 from src.constants import (
     FEATURE_COLUMNS,
     MATCHED_MODEL_DATASET_COLUMNS,
     POSSESSION_FEATURE_ADDITIONS,
     POSSESSION_FEATURE_COLUMNS,
-    ROLLING_MIN_PERIODS,
-    ROLLING_WINDOW,
     SPLIT_MANIFEST_COLUMNS,
     SPLIT_ORDER,
 )
 from src.split_data import DatasetSplits, SplitPolicy, load_split_policy
+from src.download_data import ManifestError
 
 
 MATCHED_DATASET_PATH = (
@@ -60,112 +60,172 @@ class MatchedExperimentArtifacts:
     manifest_path: Path
 
 
-def _validate_rolling_controls(window: int, min_periods: int) -> None:
-    if window <= 0:
-        raise MatchedExperimentError("Possession rolling window must be positive.")
-    if min_periods <= 0 or min_periods > window:
+def _target_season_for_source(source_season: str) -> str:
+    """Return the canonical season immediately after a four-digit season code."""
+    if re.fullmatch(r"\d{4}", source_season) is None:
         raise MatchedExperimentError(
-            "Possession rolling min_periods must be between 1 and the window size."
+            f"Invalid possession source season {source_season!r}."
+        )
+    start_year = 2000 + int(source_season[:2])
+    if start_year > 2089:
+        start_year -= 100
+    expected_source = season_code_from_start_year(start_year)
+    if expected_source != source_season:
+        raise MatchedExperimentError(
+            f"Invalid possession source season {source_season!r}."
+        )
+    return season_code_from_start_year(start_year + 1)
+
+
+def _validate_team_season_possession(frame: pd.DataFrame) -> pd.DataFrame:
+    """Validate the Phase 6 table before any fixture-level feature join."""
+    if tuple(frame.columns) != TEAM_SEASON_POSSESSION_COLUMNS:
+        raise MatchedExperimentError(
+            "Team-season possession columns differ from the Phase 6 contract."
+        )
+    if frame.empty:
+        raise MatchedExperimentError("Team-season possession data is empty.")
+
+    working = frame.copy()
+    for column in ("source_season", "target_season", "team", "team_slug"):
+        if working[column].isna().any() or working[column].astype(str).str.strip().eq("").any():
+            raise MatchedExperimentError(
+                f"Team-season possession requires complete {column} values."
+            )
+        working[column] = working[column].astype(str)
+
+    for source_season, target_season in working.loc[
+        :, ["source_season", "target_season"]
+    ].itertuples(index=False, name=None):
+        if _target_season_for_source(source_season) != target_season:
+            raise MatchedExperimentError(
+                "Possession rows must map source season N-1 to target season N."
+            )
+
+    key_columns = ["source_season", "team_slug"]
+    if working.duplicated(key_columns).any() or working.duplicated(
+        ["target_season", "team_slug"]
+    ).any():
+        raise MatchedExperimentError(
+            "Team-season possession requires one row per season and team."
+        )
+    source_counts = working.groupby("target_season")["source_season"].nunique()
+    if source_counts.gt(1).any():
+        raise MatchedExperimentError(
+            "A target season maps to multiple possession source seasons."
         )
 
+    numeric = pd.to_numeric(working["average_possession_pct"], errors="coerce")
+    invalid_numeric = working["average_possession_pct"].notna() & numeric.isna()
+    if invalid_numeric.any() or numeric.dropna().lt(0).any() or numeric.dropna().gt(100).any():
+        raise MatchedExperimentError(
+            "Team-season average possession must be numeric within 0--100 or missing."
+        )
+    working["average_possession_pct"] = numeric.astype("Float64")
+    return working
 
-def compute_possession_rolling_features(
-    history: pd.DataFrame,
-    *,
-    window: int = ROLLING_WINDOW,
-    min_periods: int = ROLLING_MIN_PERIODS,
+
+def _canonical_team_slugs_by_season(
+    canonical: pd.DataFrame,
+) -> dict[str, set[str]]:
+    teams: dict[str, set[str]] = {}
+    for season, group in canonical.groupby(canonical["season"].astype(str), sort=False):
+        teams[str(season)] = set(group["home_team_slug"].astype(str)).union(
+            group["away_team_slug"].astype(str)
+        )
+    return teams
+
+
+def build_lagged_possession_features(
+    canonical: pd.DataFrame,
+    team_season_possession: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Compute means from the previous possession-complete EPL matches only."""
-    _validate_rolling_controls(window, min_periods)
-    try:
-        validate_team_history(history)
-    except HistoryError as exc:
+    """Join each fixture only to both clubs' preceding completed EPL season."""
+    required = {"match_id", "season", "home_team_slug", "away_team_slug"}
+    missing = required.difference(canonical.columns)
+    if missing:
         raise MatchedExperimentError(
-            f"Cannot build possession features from invalid team history: {exc}"
-        ) from exc
-
-    working = history.copy()
-    try:
-        parsed_dates = pd.to_datetime(
-            working["date"], format="%Y-%m-%d", errors="raise"
+            f"Canonical fixtures are missing lagged-possession keys: {sorted(missing)}"
         )
-    except (TypeError, ValueError) as exc:
-        raise MatchedExperimentError(
-            f"Team history contains invalid dates: {exc}"
-        ) from exc
-    possession = pd.to_numeric(working["possession"], errors="coerce")
-    invalid = working["possession"].notna() & possession.isna()
-    if invalid.any():
-        raise MatchedExperimentError("Team history contains nonnumeric possession.")
-    if (possession.dropna().lt(0) | possession.dropna().gt(100)).any():
-        raise MatchedExperimentError("Team history possession must be within 0--100.")
-
-    working["_parsed_date"] = parsed_dates
-    working["_possession_numeric"] = possession
-    working = working.sort_values(
-        ["team_slug", "date", "match_id"], kind="mergesort"
-    ).reset_index(drop=True)
-    averages = pd.Series(pd.NA, index=working.index, dtype="Float64")
-
-    for _, team_group in working.groupby("team_slug", sort=False):
-        prior_complete: list[float] = []
-        for _, same_date in team_group.groupby("_parsed_date", sort=False):
-            recent = prior_complete[-window:]
-            if len(recent) >= min_periods:
-                averages.loc[same_date.index] = float(np.mean(recent))
-            current_complete = same_date["_possession_numeric"].dropna().tolist()
-            prior_complete.extend(float(value) for value in current_complete)
-
-    result = working.loc[
-        :, ["team_match_id", "match_id", "date", "team_slug", "is_home"]
+    possession = _validate_team_season_possession(team_season_possession)
+    fixture_keys = canonical.loc[
+        :, ["match_id", "season", "home_team_slug", "away_team_slug"]
     ].copy()
-    result["possession_avg_5"] = averages
-    return result
+    fixture_keys["season"] = fixture_keys["season"].astype(str)
 
-
-def previous_possession_match_ids(
-    history: pd.DataFrame,
-    team_slug: str,
-    current_match_date: date | str,
-    *,
-    window: int = ROLLING_WINDOW,
-) -> tuple[str, ...]:
-    """Return exact strictly-prior possession-complete source fixture IDs."""
-    if window <= 0:
-        raise MatchedExperimentError("Possession source window must be positive.")
-    date_text = (
-        current_match_date.isoformat()
-        if isinstance(current_match_date, date)
-        else str(current_match_date)
+    lookup = possession.loc[
+        :, ["source_season", "target_season", "team_slug", "average_possession_pct"]
+    ]
+    home_lookup = lookup.rename(
+        columns={
+            "team_slug": "home_team_slug",
+            "average_possession_pct": "home_previous_season_possession",
+            "source_season": "home_possession_source_season",
+            "target_season": "season",
+        }
+    )
+    away_lookup = lookup.rename(
+        columns={
+            "team_slug": "away_team_slug",
+            "average_possession_pct": "away_previous_season_possession",
+            "source_season": "away_possession_source_season",
+            "target_season": "season",
+        }
     )
     try:
-        current_date = datetime.strptime(date_text, "%Y-%m-%d").date()
-    except ValueError as exc:
+        joined = fixture_keys.merge(
+            home_lookup,
+            on=["season", "home_team_slug"],
+            how="left",
+            validate="many_to_one",
+        ).merge(
+            away_lookup,
+            on=["season", "away_team_slug"],
+            how="left",
+            validate="many_to_one",
+        )
+    except pd.errors.MergeError as exc:
         raise MatchedExperimentError(
-            f"Possession source-window date must be YYYY-MM-DD: {date_text!r}."
+            f"Could not join lagged team-season possession: {exc}"
         ) from exc
-    dates = pd.to_datetime(
-        history["date"], format="%Y-%m-%d", errors="raise"
-    ).dt.date
-    possession = pd.to_numeric(history["possession"], errors="coerce")
-    mask = (
-        history["team_slug"].eq(team_slug)
-        & dates.lt(current_date)
-        & possession.notna()
+
+    source_by_target = (
+        possession.loc[:, ["target_season", "source_season"]]
+        .drop_duplicates()
+        .set_index("target_season")["source_season"]
+        .to_dict()
     )
-    prior = history.loc[mask, ["date", "match_id"]].sort_values(
-        ["date", "match_id"], kind="mergesort"
+    canonical_teams = _canonical_team_slugs_by_season(canonical)
+    for role in ("home", "away"):
+        source_column = f"{role}_possession_source_season"
+        team_column = f"{role}_team_slug"
+        for row in joined.loc[joined[source_column].isna()].itertuples(index=False):
+            target_season = str(row.season)
+            expected_source = source_by_target.get(target_season)
+            if expected_source is None:
+                continue
+            team_slug = str(getattr(row, team_column))
+            if team_slug in canonical_teams.get(str(expected_source), set()):
+                raise MatchedExperimentError(
+                    f"Missing preceding-season possession for established EPL team "
+                    f"{team_slug!r} in target season {target_season}."
+                )
+
+    joined["possession_edge"] = (
+        joined["home_previous_season_possession"]
+        - joined["away_previous_season_possession"]
     )
-    return tuple(prior.tail(window)["match_id"].astype(str))
+    return joined.loc[:, ["match_id", *POSSESSION_FEATURE_ADDITIONS]]
 
 
 def build_possession_complete_dataset(
     canonical: pd.DataFrame,
     history: pd.DataFrame,
     *,
+    team_season_possession: pd.DataFrame,
     model_b_period_start: str,
 ) -> pd.DataFrame:
-    """Build one cohort shared by baseline-matched and possession models."""
+    """Build the one lagged-possession cohort shared by both Phase 7 models."""
     try:
         baseline = build_model_dataset_frame(
             canonical, history, feature_set="baseline"
@@ -174,32 +234,17 @@ def build_possession_complete_dataset(
         raise MatchedExperimentError(
             f"Could not build baseline features for the matched cohort: {exc}"
         ) from exc
-    possession_features = compute_possession_rolling_features(history)
-
-    home = possession_features.loc[
-        possession_features["is_home"].astype("bool"),
-        ["match_id", "possession_avg_5"],
-    ].rename(columns={"possession_avg_5": "home_possession_avg_5"})
-    away = possession_features.loc[
-        ~possession_features["is_home"].astype("bool"),
-        ["match_id", "possession_avg_5"],
-    ].rename(columns={"possession_avg_5": "away_possession_avg_5"})
-    if not home["match_id"].is_unique or not away["match_id"].is_unique:
-        raise MatchedExperimentError(
-            "Possession features contain multiple home or away rows per fixture."
-        )
+    possession_features = build_lagged_possession_features(
+        canonical, team_season_possession
+    )
     try:
         matched = baseline.merge(
-            home, on="match_id", how="left", validate="one_to_one"
-        ).merge(away, on="match_id", how="left", validate="one_to_one")
+            possession_features, on="match_id", how="left", validate="one_to_one"
+        )
     except pd.errors.MergeError as exc:
         raise MatchedExperimentError(
             f"Could not join possession features one-to-one: {exc}"
         ) from exc
-    matched["possession_edge"] = (
-        matched["home_possession_avg_5"]
-        - matched["away_possession_avg_5"]
-    )
 
     season_order = list(dict.fromkeys(canonical["season"].astype(str).tolist()))
     if model_b_period_start not in season_order:
@@ -209,16 +254,8 @@ def build_possession_complete_dataset(
     eligible_seasons = set(
         season_order[season_order.index(model_b_period_start) :]
     )
-    current_complete = canonical.loc[
-        canonical["home_possession"].notna()
-        & canonical["away_possession"].notna(),
-        "match_id",
-    ].astype(str)
     complete_mask = (
         matched["season"].astype(str).isin(eligible_seasons)
-        & matched["match_id"].astype(str).isin(set(current_complete))
-        & matched["home_possession_avg_5"].notna()
-        & matched["away_possession_avg_5"].notna()
     )
     matched = matched.loc[complete_mask, MATCHED_MODEL_DATASET_COLUMNS].copy()
     matched = matched.sort_values(["date", "match_id"], kind="mergesort").reset_index(
@@ -253,20 +290,31 @@ def validate_matched_model_dataset(
         raise MatchedExperimentError(
             f"Matched baseline features failed validation: {exc}"
         ) from exc
-    for column in ("home_possession_avg_5", "away_possession_avg_5"):
+    for column in (
+        "home_previous_season_possession",
+        "away_previous_season_possession",
+    ):
         values = pd.to_numeric(frame[column], errors="coerce")
-        if values.isna().any() or values.lt(0).any() or values.gt(100).any():
+        invalid = frame[column].notna() & values.isna()
+        if invalid.any() or values.dropna().lt(0).any() or values.dropna().gt(100).any():
             raise MatchedExperimentError(
-                f"Matched feature {column} must contain complete 0--100 values."
+                f"Matched feature {column} must contain 0--100 values or be missing."
             )
     expected_edge = (
-        frame["home_possession_avg_5"] - frame["away_possession_avg_5"]
+        frame["home_previous_season_possession"]
+        - frame["away_previous_season_possession"]
     )
-    if not np.allclose(
-        pd.to_numeric(frame["possession_edge"], errors="coerce"),
-        pd.to_numeric(expected_edge, errors="coerce"),
-        rtol=0.0,
-        atol=1e-12,
+    observed_edge = pd.to_numeric(frame["possession_edge"], errors="coerce")
+    both_available = expected_edge.notna()
+    if (
+        (frame["possession_edge"].notna() & observed_edge.isna()).any()
+        or observed_edge.loc[~both_available].notna().any()
+        or not np.allclose(
+            observed_edge.loc[both_available],
+            pd.to_numeric(expected_edge.loc[both_available], errors="raise"),
+            rtol=0.0,
+            atol=1e-12,
+        )
     ):
         raise MatchedExperimentError("Possession edge has an invalid sign.")
     if set(POSSESSION_FEATURE_COLUMNS).difference(frame.columns):
@@ -285,11 +333,11 @@ def validate_matched_model_dataset(
                 f"Matched rows are absent from canonical data: {sorted(missing_ids)[:5]}"
             )
         current = canonical_by_id.loc[frame["match_id"]]
-        if current["home_possession"].isna().any() or current[
-            "away_possession"
-        ].isna().any():
+        if not current["season"].astype(str).reset_index(drop=True).equals(
+            frame["season"].astype(str).reset_index(drop=True)
+        ):
             raise MatchedExperimentError(
-                "Matched rows require complete current-fixture possession coverage."
+                "Matched rows do not preserve canonical fixture seasons."
             )
 
 
@@ -431,17 +479,28 @@ def prepare_matched_experiment(
         project_root / "data" / "processed" / "canonical_matches.csv"
     )
     history = build_team_history_frame(canonical)
-    threshold = load_possession_coverage_threshold(project_root)
-    coverage = build_possession_coverage(canonical, threshold)
-    if coverage.model_b_period_start is None:
+    try:
+        possession_rows, model_b_period_start, _, _ = build_processed_possession(
+            project_root
+        )
+    except (PossessionCollectionError, ManifestError) as exc:
         raise MatchedExperimentError(
-            f"Possession coverage is below {threshold:.0%} in every season; "
+            f"Could not load validated team-season possession: {exc}"
+        ) from exc
+    if model_b_period_start is None:
+        raise MatchedExperimentError(
+            "Possession coverage is below the configured threshold in every season; "
             "collect and join sufficient EPL possession data before Phase 7 training."
         )
+    possession = pd.DataFrame(
+        [row.__dict__ for row in possession_rows],
+        columns=TEAM_SEASON_POSSESSION_COLUMNS,
+    )
     dataset = build_possession_complete_dataset(
         canonical,
         history,
-        model_b_period_start=coverage.model_b_period_start,
+        team_season_possession=possession,
+        model_b_period_start=model_b_period_start,
     )
     policy = load_split_policy(project_root / "config" / "model_config.json")
     splits = split_matched_dataset(dataset, policy)
@@ -496,7 +555,7 @@ def prepare_matched_experiment(
         dataset=dataset,
         splits=splits,
         manifest=manifest,
-        model_b_period_start=coverage.model_b_period_start,
+        model_b_period_start=model_b_period_start,
         dataset_path=dataset_path,
         manifest_path=manifest_path,
     )

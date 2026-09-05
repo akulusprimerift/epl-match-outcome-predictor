@@ -82,6 +82,7 @@ api_football,West Ham,West Ham United,west-ham-united
 api_football,Wigan,Wigan Athletic,wigan-athletic
 api_football,Wolves,Wolverhampton Wanderers,wolverhampton-wanderers
 sofascore,AFC Bournemouth,AFC Bournemouth,afc-bournemouth
+sofascore,Bournemouth,AFC Bournemouth,afc-bournemouth
 sofascore,Arsenal,Arsenal,arsenal
 sofascore,Aston Villa,Aston Villa,aston-villa
 sofascore,Birmingham City,Birmingham City,birmingham-city
@@ -102,6 +103,7 @@ sofascore,Ipswich Town,Ipswich Town,ipswich-town
 sofascore,Leeds United,Leeds United,leeds-united
 sofascore,Leicester City,Leicester City,leicester-city
 sofascore,Liverpool,Liverpool,liverpool
+sofascore,Liverpool FC,Liverpool,liverpool
 sofascore,Luton Town,Luton Town,luton-town
 sofascore,Manchester City,Manchester City,manchester-city
 sofascore,Manchester United,Manchester United,manchester-united

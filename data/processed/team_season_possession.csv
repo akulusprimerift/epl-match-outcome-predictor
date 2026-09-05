@@ -1,1 +1,181 @@
 source_season,target_season,source_season_start_year,sofascore_season_id,team,team_slug,sofascore_team_name,sofascore_team_id,average_possession_pct,matches_recorded,source_url
+1718,1819,2017,13380,AFC Bournemouth,afc-bournemouth,Bournemouth,60,48.1,38,https://www.sofascore.com/api/v1/team/60/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Arsenal,arsenal,Arsenal,42,61.9,38,https://www.sofascore.com/api/v1/team/42/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Brighton & Hove Albion,brighton-and-hove-albion,Brighton & Hove Albion,30,43.2,38,https://www.sofascore.com/api/v1/team/30/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Burnley,burnley,Burnley,6,43.7,38,https://www.sofascore.com/api/v1/team/6/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Chelsea,chelsea,Chelsea,38,55.6,38,https://www.sofascore.com/api/v1/team/38/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Crystal Palace,crystal-palace,Crystal Palace,7,45.1,38,https://www.sofascore.com/api/v1/team/7/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Everton,everton,Everton,48,45.5,38,https://www.sofascore.com/api/v1/team/48/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Huddersfield Town,huddersfield-town,Huddersfield Town,59,45.6,38,https://www.sofascore.com/api/v1/team/59/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Leicester City,leicester-city,Leicester City,31,48.0,38,https://www.sofascore.com/api/v1/team/31/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Liverpool,liverpool,Liverpool FC,44,60.7,38,https://www.sofascore.com/api/v1/team/44/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Manchester City,manchester-city,Manchester City,17,71.7,38,https://www.sofascore.com/api/v1/team/17/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Manchester United,manchester-united,Manchester United,35,54.8,38,https://www.sofascore.com/api/v1/team/35/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Newcastle United,newcastle-united,Newcastle United,39,41.7,38,https://www.sofascore.com/api/v1/team/39/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Southampton,southampton,Southampton,45,51.5,38,https://www.sofascore.com/api/v1/team/45/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Stoke City,stoke-city,Stoke City,29,41.0,38,https://www.sofascore.com/api/v1/team/29/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Swansea City,swansea-city,Swansea City,74,45.1,38,https://www.sofascore.com/api/v1/team/74/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Tottenham Hotspur,tottenham-hotspur,Tottenham Hotspur,33,62.1,38,https://www.sofascore.com/api/v1/team/33/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,Watford,watford,Watford,24,49.8,38,https://www.sofascore.com/api/v1/team/24/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,West Bromwich Albion,west-bromwich-albion,West Bromwich Albion,8,40.2,38,https://www.sofascore.com/api/v1/team/8/unique-tournament/17/season/13380/statistics/overall
+1718,1819,2017,13380,West Ham United,west-ham-united,West Ham United,37,44.7,38,https://www.sofascore.com/api/v1/team/37/unique-tournament/17/season/13380/statistics/overall
+1819,1920,2018,17359,AFC Bournemouth,afc-bournemouth,Bournemouth,60,46.8,38,https://www.sofascore.com/api/v1/team/60/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Arsenal,arsenal,Arsenal,42,58.4,38,https://www.sofascore.com/api/v1/team/42/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Brighton & Hove Albion,brighton-and-hove-albion,Brighton & Hove Albion,30,41.9,38,https://www.sofascore.com/api/v1/team/30/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Burnley,burnley,Burnley,6,40.7,38,https://www.sofascore.com/api/v1/team/6/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Cardiff City,cardiff-city,Cardiff City,61,34.8,38,https://www.sofascore.com/api/v1/team/61/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Chelsea,chelsea,Chelsea,38,63.5,38,https://www.sofascore.com/api/v1/team/38/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Crystal Palace,crystal-palace,Crystal Palace,7,45.1,38,https://www.sofascore.com/api/v1/team/7/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Everton,everton,Everton,48,51.7,38,https://www.sofascore.com/api/v1/team/48/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Fulham,fulham,Fulham,43,48.8,38,https://www.sofascore.com/api/v1/team/43/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Huddersfield Town,huddersfield-town,Huddersfield Town,59,47.1,38,https://www.sofascore.com/api/v1/team/59/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Leicester City,leicester-city,Leicester City,31,51.0,38,https://www.sofascore.com/api/v1/team/31/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Liverpool,liverpool,Liverpool FC,44,62.3,38,https://www.sofascore.com/api/v1/team/44/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Manchester City,manchester-city,Manchester City,17,68.3,38,https://www.sofascore.com/api/v1/team/17/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Manchester United,manchester-united,Manchester United,35,54.8,38,https://www.sofascore.com/api/v1/team/35/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Newcastle United,newcastle-united,Newcastle United,39,40.1,38,https://www.sofascore.com/api/v1/team/39/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Southampton,southampton,Southampton,45,43.3,38,https://www.sofascore.com/api/v1/team/45/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Tottenham Hotspur,tottenham-hotspur,Tottenham Hotspur,33,59.4,38,https://www.sofascore.com/api/v1/team/33/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Watford,watford,Watford,24,46.7,38,https://www.sofascore.com/api/v1/team/24/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,West Ham United,west-ham-united,West Ham United,37,48.6,38,https://www.sofascore.com/api/v1/team/37/unique-tournament/17/season/17359/statistics/overall
+1819,1920,2018,17359,Wolverhampton Wanderers,wolverhampton-wanderers,Wolverhampton,3,46.7,38,https://www.sofascore.com/api/v1/team/3/unique-tournament/17/season/17359/statistics/overall
+1920,2021,2019,23776,AFC Bournemouth,afc-bournemouth,Bournemouth,60,43.8,38,https://www.sofascore.com/api/v1/team/60/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Arsenal,arsenal,Arsenal,42,53.9,38,https://www.sofascore.com/api/v1/team/42/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Aston Villa,aston-villa,Aston Villa,40,43.9,38,https://www.sofascore.com/api/v1/team/40/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Brighton & Hove Albion,brighton-and-hove-albion,Brighton & Hove Albion,30,52.3,38,https://www.sofascore.com/api/v1/team/30/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Burnley,burnley,Burnley,6,41.5,38,https://www.sofascore.com/api/v1/team/6/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Chelsea,chelsea,Chelsea,38,60.7,38,https://www.sofascore.com/api/v1/team/38/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Crystal Palace,crystal-palace,Crystal Palace,7,44.6,38,https://www.sofascore.com/api/v1/team/7/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Everton,everton,Everton,48,49.2,38,https://www.sofascore.com/api/v1/team/48/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Leicester City,leicester-city,Leicester City,31,57.5,38,https://www.sofascore.com/api/v1/team/31/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Liverpool,liverpool,Liverpool FC,44,63.2,38,https://www.sofascore.com/api/v1/team/44/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Manchester City,manchester-city,Manchester City,17,66.7,38,https://www.sofascore.com/api/v1/team/17/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Manchester United,manchester-united,Manchester United,35,56.0,38,https://www.sofascore.com/api/v1/team/35/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Newcastle United,newcastle-united,Newcastle United,39,38.6,38,https://www.sofascore.com/api/v1/team/39/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Norwich City,norwich-city,Norwich City,263,49.4,38,https://www.sofascore.com/api/v1/team/263/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Sheffield United,sheffield-united,Sheffield United,15,42.9,38,https://www.sofascore.com/api/v1/team/15/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Southampton,southampton,Southampton,45,48.9,38,https://www.sofascore.com/api/v1/team/45/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Tottenham Hotspur,tottenham-hotspur,Tottenham Hotspur,33,52.2,38,https://www.sofascore.com/api/v1/team/33/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Watford,watford,Watford,24,42.4,38,https://www.sofascore.com/api/v1/team/24/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,West Ham United,west-ham-united,West Ham United,37,43.9,38,https://www.sofascore.com/api/v1/team/37/unique-tournament/17/season/23776/statistics/overall
+1920,2021,2019,23776,Wolverhampton Wanderers,wolverhampton-wanderers,Wolverhampton,3,48.3,38,https://www.sofascore.com/api/v1/team/3/unique-tournament/17/season/23776/statistics/overall
+2021,2122,2020,29415,Arsenal,arsenal,Arsenal,42,53.7,38,https://www.sofascore.com/api/v1/team/42/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Aston Villa,aston-villa,Aston Villa,40,48.3,38,https://www.sofascore.com/api/v1/team/40/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Brighton & Hove Albion,brighton-and-hove-albion,Brighton & Hove Albion,30,51.1,38,https://www.sofascore.com/api/v1/team/30/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Burnley,burnley,Burnley,6,41.9,38,https://www.sofascore.com/api/v1/team/6/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Chelsea,chelsea,Chelsea,38,61.3,38,https://www.sofascore.com/api/v1/team/38/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Crystal Palace,crystal-palace,Crystal Palace,7,40.2,38,https://www.sofascore.com/api/v1/team/7/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Everton,everton,Everton,48,46.4,38,https://www.sofascore.com/api/v1/team/48/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Fulham,fulham,Fulham,43,49.8,38,https://www.sofascore.com/api/v1/team/43/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Leeds United,leeds-united,Leeds United,34,57.6,38,https://www.sofascore.com/api/v1/team/34/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Leicester City,leicester-city,Leicester City,31,54.6,38,https://www.sofascore.com/api/v1/team/31/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Liverpool,liverpool,Liverpool FC,44,62.4,38,https://www.sofascore.com/api/v1/team/44/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Manchester City,manchester-city,Manchester City,17,63.7,38,https://www.sofascore.com/api/v1/team/17/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Manchester United,manchester-united,Manchester United,35,55.9,38,https://www.sofascore.com/api/v1/team/35/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Newcastle United,newcastle-united,Newcastle United,39,38.3,38,https://www.sofascore.com/api/v1/team/39/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Sheffield United,sheffield-united,Sheffield United,15,41.4,38,https://www.sofascore.com/api/v1/team/15/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Southampton,southampton,Southampton,45,52.2,38,https://www.sofascore.com/api/v1/team/45/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Tottenham Hotspur,tottenham-hotspur,Tottenham Hotspur,33,51.5,38,https://www.sofascore.com/api/v1/team/33/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,West Bromwich Albion,west-bromwich-albion,West Bromwich Albion,8,37.5,38,https://www.sofascore.com/api/v1/team/8/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,West Ham United,west-ham-united,West Ham United,37,42.7,38,https://www.sofascore.com/api/v1/team/37/unique-tournament/17/season/29415/statistics/overall
+2021,2122,2020,29415,Wolverhampton Wanderers,wolverhampton-wanderers,Wolverhampton,3,49.3,38,https://www.sofascore.com/api/v1/team/3/unique-tournament/17/season/29415/statistics/overall
+2122,2223,2021,37036,Arsenal,arsenal,Arsenal,42,53.0,38,https://www.sofascore.com/api/v1/team/42/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Aston Villa,aston-villa,Aston Villa,40,46.4,38,https://www.sofascore.com/api/v1/team/40/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Brentford,brentford,Brentford,50,44.5,38,https://www.sofascore.com/api/v1/team/50/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Brighton & Hove Albion,brighton-and-hove-albion,Brighton & Hove Albion,30,54.6,38,https://www.sofascore.com/api/v1/team/30/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Burnley,burnley,Burnley,6,39.7,38,https://www.sofascore.com/api/v1/team/6/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Chelsea,chelsea,Chelsea,38,62.3,38,https://www.sofascore.com/api/v1/team/38/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Crystal Palace,crystal-palace,Crystal Palace,7,51.2,38,https://www.sofascore.com/api/v1/team/7/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Everton,everton,Everton,48,39.8,38,https://www.sofascore.com/api/v1/team/48/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Leeds United,leeds-united,Leeds United,34,52.5,38,https://www.sofascore.com/api/v1/team/34/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Leicester City,leicester-city,Leicester City,31,52.2,38,https://www.sofascore.com/api/v1/team/31/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Liverpool,liverpool,Liverpool FC,44,63.2,38,https://www.sofascore.com/api/v1/team/44/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Manchester City,manchester-city,Manchester City,17,68.2,38,https://www.sofascore.com/api/v1/team/17/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Manchester United,manchester-united,Manchester United,35,52.7,38,https://www.sofascore.com/api/v1/team/35/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Newcastle United,newcastle-united,Newcastle United,39,40.0,38,https://www.sofascore.com/api/v1/team/39/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Norwich City,norwich-city,Norwich City,263,42.5,38,https://www.sofascore.com/api/v1/team/263/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Southampton,southampton,Southampton,45,47.7,38,https://www.sofascore.com/api/v1/team/45/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Tottenham Hotspur,tottenham-hotspur,Tottenham Hotspur,33,51.8,38,https://www.sofascore.com/api/v1/team/33/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Watford,watford,Watford,24,40.3,38,https://www.sofascore.com/api/v1/team/24/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,West Ham United,west-ham-united,West Ham United,37,47.7,38,https://www.sofascore.com/api/v1/team/37/unique-tournament/17/season/37036/statistics/overall
+2122,2223,2021,37036,Wolverhampton Wanderers,wolverhampton-wanderers,Wolverhampton,3,49.5,38,https://www.sofascore.com/api/v1/team/3/unique-tournament/17/season/37036/statistics/overall
+2223,2324,2022,41886,AFC Bournemouth,afc-bournemouth,Bournemouth,60,40.1,38,https://www.sofascore.com/api/v1/team/60/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Arsenal,arsenal,Arsenal,42,59.8,38,https://www.sofascore.com/api/v1/team/42/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Aston Villa,aston-villa,Aston Villa,40,49.4,38,https://www.sofascore.com/api/v1/team/40/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Brentford,brentford,Brentford,50,43.5,38,https://www.sofascore.com/api/v1/team/50/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Brighton & Hove Albion,brighton-and-hove-albion,Brighton & Hove Albion,30,60.4,38,https://www.sofascore.com/api/v1/team/30/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Chelsea,chelsea,Chelsea,38,59.1,38,https://www.sofascore.com/api/v1/team/38/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Crystal Palace,crystal-palace,Crystal Palace,7,46.1,38,https://www.sofascore.com/api/v1/team/7/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Everton,everton,Everton,48,42.6,38,https://www.sofascore.com/api/v1/team/48/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Fulham,fulham,Fulham,43,48.6,38,https://www.sofascore.com/api/v1/team/43/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Leeds United,leeds-united,Leeds United,34,46.9,38,https://www.sofascore.com/api/v1/team/34/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Leicester City,leicester-city,Leicester City,31,47.7,38,https://www.sofascore.com/api/v1/team/31/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Liverpool,liverpool,Liverpool FC,44,61.0,38,https://www.sofascore.com/api/v1/team/44/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Manchester City,manchester-city,Manchester City,17,65.1,38,https://www.sofascore.com/api/v1/team/17/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Manchester United,manchester-united,Manchester United,35,53.8,38,https://www.sofascore.com/api/v1/team/35/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Newcastle United,newcastle-united,Newcastle United,39,52.4,38,https://www.sofascore.com/api/v1/team/39/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Nottingham Forest,nottingham-forest,Nottingham Forest,14,37.3,38,https://www.sofascore.com/api/v1/team/14/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Southampton,southampton,Southampton,45,44.5,38,https://www.sofascore.com/api/v1/team/45/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Tottenham Hotspur,tottenham-hotspur,Tottenham Hotspur,33,49.9,38,https://www.sofascore.com/api/v1/team/33/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,West Ham United,west-ham-united,West Ham United,37,41.7,38,https://www.sofascore.com/api/v1/team/37/unique-tournament/17/season/41886/statistics/overall
+2223,2324,2022,41886,Wolverhampton Wanderers,wolverhampton-wanderers,Wolverhampton,3,50.2,38,https://www.sofascore.com/api/v1/team/3/unique-tournament/17/season/41886/statistics/overall
+2324,2425,2023,52186,AFC Bournemouth,afc-bournemouth,Bournemouth,60,44.1,38,https://www.sofascore.com/api/v1/team/60/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Arsenal,arsenal,Arsenal,42,58.4,38,https://www.sofascore.com/api/v1/team/42/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Aston Villa,aston-villa,Aston Villa,40,53.2,38,https://www.sofascore.com/api/v1/team/40/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Brentford,brentford,Brentford,50,45.0,38,https://www.sofascore.com/api/v1/team/50/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Brighton & Hove Albion,brighton-and-hove-albion,Brighton & Hove Albion,30,60.2,38,https://www.sofascore.com/api/v1/team/30/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Burnley,burnley,Burnley,6,47.4,38,https://www.sofascore.com/api/v1/team/6/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Chelsea,chelsea,Chelsea,38,58.9,38,https://www.sofascore.com/api/v1/team/38/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Crystal Palace,crystal-palace,Crystal Palace,7,42.1,38,https://www.sofascore.com/api/v1/team/7/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Everton,everton,Everton,48,40.6,38,https://www.sofascore.com/api/v1/team/48/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Fulham,fulham,Fulham,43,50.8,38,https://www.sofascore.com/api/v1/team/43/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Liverpool,liverpool,Liverpool FC,44,61.7,38,https://www.sofascore.com/api/v1/team/44/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Luton Town,luton-town,Luton Town,72,42.1,38,https://www.sofascore.com/api/v1/team/72/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Manchester City,manchester-city,Manchester City,17,65.4,38,https://www.sofascore.com/api/v1/team/17/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Manchester United,manchester-united,Manchester United,35,50.5,38,https://www.sofascore.com/api/v1/team/35/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Newcastle United,newcastle-united,Newcastle United,39,52.2,38,https://www.sofascore.com/api/v1/team/39/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Nottingham Forest,nottingham-forest,Nottingham Forest,14,40.3,38,https://www.sofascore.com/api/v1/team/14/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Sheffield United,sheffield-united,Sheffield United,15,35.4,38,https://www.sofascore.com/api/v1/team/15/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Tottenham Hotspur,tottenham-hotspur,Tottenham Hotspur,33,62.1,38,https://www.sofascore.com/api/v1/team/33/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,West Ham United,west-ham-united,West Ham United,37,40.8,38,https://www.sofascore.com/api/v1/team/37/unique-tournament/17/season/52186/statistics/overall
+2324,2425,2023,52186,Wolverhampton Wanderers,wolverhampton-wanderers,Wolverhampton,3,48.9,38,https://www.sofascore.com/api/v1/team/3/unique-tournament/17/season/52186/statistics/overall
+2425,2526,2024,61627,AFC Bournemouth,afc-bournemouth,Bournemouth,60,48.6,38,https://www.sofascore.com/api/v1/team/60/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Arsenal,arsenal,Arsenal,42,57.0,38,https://www.sofascore.com/api/v1/team/42/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Aston Villa,aston-villa,Aston Villa,40,50.6,38,https://www.sofascore.com/api/v1/team/40/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Brentford,brentford,Brentford,50,47.8,38,https://www.sofascore.com/api/v1/team/50/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Brighton & Hove Albion,brighton-and-hove-albion,Brighton & Hove Albion,30,52.6,38,https://www.sofascore.com/api/v1/team/30/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Chelsea,chelsea,Chelsea,38,57.2,38,https://www.sofascore.com/api/v1/team/38/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Crystal Palace,crystal-palace,Crystal Palace,7,42.6,38,https://www.sofascore.com/api/v1/team/7/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Everton,everton,Everton,48,40.6,38,https://www.sofascore.com/api/v1/team/48/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Fulham,fulham,Fulham,43,52.4,38,https://www.sofascore.com/api/v1/team/43/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Ipswich Town,ipswich-town,Ipswich Town,32,40.3,38,https://www.sofascore.com/api/v1/team/32/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Leicester City,leicester-city,Leicester City,31,45.4,38,https://www.sofascore.com/api/v1/team/31/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Liverpool,liverpool,Liverpool FC,44,57.9,38,https://www.sofascore.com/api/v1/team/44/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Manchester City,manchester-city,Manchester City,17,61.5,38,https://www.sofascore.com/api/v1/team/17/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Manchester United,manchester-united,Manchester United,35,53.6,38,https://www.sofascore.com/api/v1/team/35/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Newcastle United,newcastle-united,Newcastle United,39,51.1,38,https://www.sofascore.com/api/v1/team/39/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Nottingham Forest,nottingham-forest,Nottingham Forest,14,40.9,38,https://www.sofascore.com/api/v1/team/14/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Southampton,southampton,Southampton,45,48.6,38,https://www.sofascore.com/api/v1/team/45/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Tottenham Hotspur,tottenham-hotspur,Tottenham Hotspur,33,54.8,38,https://www.sofascore.com/api/v1/team/33/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,West Ham United,west-ham-united,West Ham United,37,48.6,38,https://www.sofascore.com/api/v1/team/37/unique-tournament/17/season/61627/statistics/overall
+2425,2526,2024,61627,Wolverhampton Wanderers,wolverhampton-wanderers,Wolverhampton,3,48.1,38,https://www.sofascore.com/api/v1/team/3/unique-tournament/17/season/61627/statistics/overall
+2526,2627,2025,76986,AFC Bournemouth,afc-bournemouth,Bournemouth,60,50.2,38,https://www.sofascore.com/api/v1/team/60/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Arsenal,arsenal,Arsenal,42,56.1,38,https://www.sofascore.com/api/v1/team/42/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Aston Villa,aston-villa,Aston Villa,40,53.6,38,https://www.sofascore.com/api/v1/team/40/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Brentford,brentford,Brentford,50,47.6,38,https://www.sofascore.com/api/v1/team/50/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Brighton & Hove Albion,brighton-and-hove-albion,Brighton & Hove Albion,30,54.1,38,https://www.sofascore.com/api/v1/team/30/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Burnley,burnley,Burnley,6,42.3,38,https://www.sofascore.com/api/v1/team/6/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Chelsea,chelsea,Chelsea,38,57.7,38,https://www.sofascore.com/api/v1/team/38/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Crystal Palace,crystal-palace,Crystal Palace,7,45.9,38,https://www.sofascore.com/api/v1/team/7/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Everton,everton,Everton,48,43.6,38,https://www.sofascore.com/api/v1/team/48/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Fulham,fulham,Fulham,43,51.7,38,https://www.sofascore.com/api/v1/team/43/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Leeds United,leeds-united,Leeds United,34,45.7,38,https://www.sofascore.com/api/v1/team/34/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Liverpool,liverpool,Liverpool FC,44,59.2,38,https://www.sofascore.com/api/v1/team/44/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Manchester City,manchester-city,Manchester City,17,60.5,38,https://www.sofascore.com/api/v1/team/17/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Manchester United,manchester-united,Manchester United,35,51.8,38,https://www.sofascore.com/api/v1/team/35/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Newcastle United,newcastle-united,Newcastle United,39,52.6,38,https://www.sofascore.com/api/v1/team/39/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Nottingham Forest,nottingham-forest,Nottingham Forest,14,46.8,38,https://www.sofascore.com/api/v1/team/14/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Sunderland,sunderland,Sunderland,41,44.8,38,https://www.sofascore.com/api/v1/team/41/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Tottenham Hotspur,tottenham-hotspur,Tottenham Hotspur,33,50.4,38,https://www.sofascore.com/api/v1/team/33/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,West Ham United,west-ham-united,West Ham United,37,42.5,38,https://www.sofascore.com/api/v1/team/37/unique-tournament/17/season/76986/statistics/overall
+2526,2627,2025,76986,Wolverhampton Wanderers,wolverhampton-wanderers,Wolverhampton,3,42.8,38,https://www.sofascore.com/api/v1/team/3/unique-tournament/17/season/76986/statistics/overall

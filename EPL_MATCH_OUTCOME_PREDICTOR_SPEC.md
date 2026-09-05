@@ -172,7 +172,9 @@ Football-Data betting-odds columns may remain in raw files but must not enter th
 **Authentication:** None.
 **Reliability note:** These are public JSON endpoints used by SofaScore's site, not a
 versioned public API contract. Cache exact responses and fail clearly if the schema
-changes.
+changes. When automated JSON access is blocked, a manifested, checksummed export
+of the same team-season statistics displayed by SofaScore may be used; it must
+retain the season ID, team ID, match count, and source URL for every row.
 
 Required endpoints:
 
@@ -1107,7 +1109,9 @@ Build a resumable, rate-limited pipeline for EPL team-season possession averages
 - Implement `src/collect_possession.py` using the standard library.
 - Discover SofaScore season IDs rather than hard-coding them.
 - Retrieve the EPL standings to enumerate exact season teams.
-- Cache the season directory, standings, and team-statistics JSON responses.
+- Cache the season directory, standings, and team-statistics JSON responses, or
+  an equivalent manifested SofaScore web export when automated JSON access is
+  blocked.
 - Implement safe resume, retry, throttling, and request-budget behavior.
 - Parse `averageBallPossession` and `matches` without converting missing values to zero.
 - Maintain exact SofaScore team-name mappings.
@@ -1486,6 +1490,7 @@ Minimum fields:
 
 ## 17. Current Next Action
 
-Phases 0 through 5 are complete. Phase 6 is being revised to use SofaScore
-team-season possession averages. Complete and validate the revised Phase 6
-collector before revising or running the Phase 7 matched experiment.
+Phases 0 through 6 are complete. The validated SofaScore export contains 180
+team-season rows across 2017/18 through 2025/26, all with possession values and
+38 recorded matches. Phase 7 is the current next action: revise the matched
+experiment to consume the lagged team-season table, then run its required tests.

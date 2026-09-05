@@ -142,5 +142,16 @@
     "sha256": "3e3a8352f9ada6789c508d6ca184424421fed56a30400904a4a327c583407e62",
     "source": "football-data",
     "source_url": "https://www.football-data.co.uk/mmz4281/2526/E0.csv"
+  },
+  {
+    "acquisition_method": "sofascore-web-statistics",
+    "endpoint": "team-season-average-possession-export",
+    "local_path": "data/raw/sofascore/sofascore_epl_average_possession_2017-18_to_2025-26.csv",
+    "retrieved_at_utc": "2026-09-05T06:25:55Z",
+    "row_count": 180,
+    "season": "1718-2526",
+    "sha256": "85a590307f50a71db17533adab02594953495dfa949727ff3b50109870246188",
+    "source": "sofascore",
+    "source_url": "https://www.sofascore.com/api/v1/unique-tournament/17/seasons"
   }
 ]

@@ -74,8 +74,8 @@ EDGE_FEATURE_COLUMNS = (
 FEATURE_COLUMNS = HOME_FEATURE_COLUMNS + AWAY_FEATURE_COLUMNS + EDGE_FEATURE_COLUMNS
 
 POSSESSION_FEATURE_ADDITIONS = (
-    "home_possession_avg_5",
-    "away_possession_avg_5",
+    "home_previous_season_possession",
+    "away_previous_season_possession",
     "possession_edge",
 )
 POSSESSION_FEATURE_COLUMNS = FEATURE_COLUMNS + POSSESSION_FEATURE_ADDITIONS

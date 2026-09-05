@@ -9,6 +9,7 @@ import unittest
 import pandas as pd
 
 from src.build_history import build_team_history_frame
+from src.collect_possession import TEAM_SEASON_POSSESSION_COLUMNS
 from src.compare_models import (
     ModelComparisonError,
     _build_report,
@@ -23,11 +24,10 @@ from src.constants import (
 from src.matched_experiment import (
     MatchedExperimentError,
     assert_identical_model_match_ids,
+    build_lagged_possession_features,
     build_matched_split_manifest,
     build_possession_complete_dataset,
-    compute_possession_rolling_features,
     feature_columns_for_set,
-    previous_possession_match_ids,
     split_matched_dataset,
 )
 from src.split_data import load_split_policy
@@ -38,104 +38,152 @@ from tests.test_leakage import synthetic_canonical
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
-def possession_canonical(match_count: int = 10) -> pd.DataFrame:
-    """Return valid synthetic fixtures with complete, non-complementary values."""
-    canonical = synthetic_canonical(match_count)
-    for position in canonical.index:
-        canonical.loc[position, "home_possession"] = 43.0 + position
-        canonical.loc[position, "away_possession"] = 54.0 - position / 2
-        canonical.loc[position, "api_fixture_id"] = 10_000 + position
-    canonical["home_possession"] = pd.to_numeric(
-        canonical["home_possession"]
-    ).astype("Float64")
-    canonical["away_possession"] = pd.to_numeric(
-        canonical["away_possession"]
-    ).astype("Float64")
-    canonical["api_fixture_id"] = pd.to_numeric(
-        canonical["api_fixture_id"]
-    ).astype("Int64")
-    return canonical
+def team_season_possession(
+    *,
+    include_beta: bool = True,
+    include_future_source: bool = False,
+) -> pd.DataFrame:
+    """Return a valid synthetic Phase 6 team-season table."""
+    rows = [
+        {
+            "source_season": "0910",
+            "target_season": "1011",
+            "source_season_start_year": 2009,
+            "sofascore_season_id": 90,
+            "team": "Alpha",
+            "team_slug": "alpha",
+            "sofascore_team_name": "Alpha FC",
+            "sofascore_team_id": 1,
+            "average_possession_pct": 57.0,
+            "matches_recorded": 38,
+            "source_url": "https://www.sofascore.com/alpha-0910",
+        }
+    ]
+    if include_beta:
+        rows.append(
+            {
+                "source_season": "0910",
+                "target_season": "1011",
+                "source_season_start_year": 2009,
+                "sofascore_season_id": 90,
+                "team": "Beta",
+                "team_slug": "beta",
+                "sofascore_team_name": "Beta FC",
+                "sofascore_team_id": 2,
+                "average_possession_pct": 43.0,
+                "matches_recorded": 38,
+                "source_url": "https://www.sofascore.com/beta-0910",
+            }
+        )
+    if include_future_source:
+        for team_id, team, value in ((1, "Alpha", 61.0), (2, "Beta", 39.0)):
+            rows.append(
+                {
+                    "source_season": "1011",
+                    "target_season": "1112",
+                    "source_season_start_year": 2010,
+                    "sofascore_season_id": 101,
+                    "team": team,
+                    "team_slug": team.lower(),
+                    "sofascore_team_name": f"{team} FC",
+                    "sofascore_team_id": team_id,
+                    "average_possession_pct": value,
+                    "matches_recorded": 38,
+                    "source_url": f"https://www.sofascore.com/{team.lower()}-1011",
+                }
+            )
+    return pd.DataFrame(rows, columns=TEAM_SEASON_POSSESSION_COLUMNS)
 
 
-class PossessionRollingFeatureTests(unittest.TestCase):
-    """Prove possession windows are complete, strict, and leakage-safe."""
+class LaggedPossessionFeatureTests(unittest.TestCase):
+    """Prove every possession input comes from the preceding EPL season."""
 
     def setUp(self) -> None:
-        self.canonical = possession_canonical()
+        self.canonical = synthetic_canonical(10)
         self.history = build_team_history_frame(self.canonical)
+        self.possession = team_season_possession()
 
-    def test_previous_five_complete_matches_are_used(self) -> None:
-        current_date = self.canonical.loc[7, "date"]
-        expected = tuple(self.canonical.loc[2:6, "match_id"])
-        self.assertEqual(
-            previous_possession_match_ids(
-                self.history, "alpha", current_date
-            ),
-            expected,
+    def test_immediately_preceding_season_is_joined_by_team_slug(self) -> None:
+        dataset = build_possession_complete_dataset(
+            self.canonical,
+            self.history,
+            team_season_possession=self.possession,
+            model_b_period_start="1011",
         )
-        features = compute_possession_rolling_features(self.history)
-        row = features.loc[
-            features["match_id"].eq(self.canonical.loc[7, "match_id"])
-            & features["team_slug"].eq("alpha")
-        ].iloc[0]
-        source = self.history.loc[
-            self.history["team_slug"].eq("alpha")
-            & self.history["match_id"].isin(expected),
-            "possession",
-        ]
-        self.assertAlmostEqual(row["possession_avg_5"], source.mean())
+        self.assertEqual(len(dataset), len(self.canonical))
+        self.assertTrue(dataset["home_previous_season_possession"].eq(57.0).all())
+        self.assertTrue(dataset["away_previous_season_possession"].eq(43.0).all())
+        self.assertTrue(dataset["possession_edge"].eq(14.0).all())
 
-    def test_missing_history_is_skipped_not_zero_filled(self) -> None:
-        canonical = deepcopy(self.canonical)
-        canonical.loc[2, ["home_possession", "away_possession", "api_fixture_id"]] = pd.NA
-        history = build_team_history_frame(canonical)
-        current_date = canonical.loc[7, "date"]
-        expected = tuple(canonical.loc[[1, 3, 4, 5, 6], "match_id"])
-        self.assertEqual(
-            previous_possession_match_ids(history, "alpha", current_date),
-            expected,
-        )
-
-    def test_current_possession_cannot_change_current_features(self) -> None:
-        current_position = 7
-        match_id = self.canonical.loc[current_position, "match_id"]
+    def test_current_fixture_possession_cannot_change_lagged_features(self) -> None:
         baseline = build_possession_complete_dataset(
             self.canonical,
             self.history,
+            team_season_possession=self.possession,
             model_b_period_start="1011",
-        ).set_index("match_id")
-        mutated = deepcopy(self.canonical)
-        mutated.loc[current_position, "home_possession"] = 99.0
-        rebuilt = build_possession_complete_dataset(
-            mutated,
-            build_team_history_frame(mutated),
-            model_b_period_start="1011",
-        ).set_index("match_id")
-        pd.testing.assert_series_equal(
-            baseline.loc[match_id, list(POSSESSION_FEATURE_ADDITIONS)],
-            rebuilt.loc[match_id, list(POSSESSION_FEATURE_ADDITIONS)],
         )
-
-    def test_future_possession_cannot_change_earlier_features(self) -> None:
-        baseline = build_possession_complete_dataset(
-            self.canonical,
-            self.history,
-            model_b_period_start="1011",
-        ).set_index("match_id")
         mutated = deepcopy(self.canonical)
-        mutated.loc[9, "away_possession"] = 1.0
+        mutated.loc[:, "home_possession"] = 99.0
+        mutated.loc[:, "away_possession"] = 1.0
         rebuilt = build_possession_complete_dataset(
             mutated,
             build_team_history_frame(mutated),
+            team_season_possession=self.possession,
             model_b_period_start="1011",
-        ).set_index("match_id")
-        earlier_ids = baseline.index[
-            baseline["date"].lt(self.canonical.loc[9, "date"])
-        ]
+        )
         pd.testing.assert_frame_equal(
-            baseline.loc[earlier_ids, list(POSSESSION_FEATURE_ADDITIONS)],
-            rebuilt.loc[earlier_ids, list(POSSESSION_FEATURE_ADDITIONS)],
+            baseline.loc[:, list(POSSESSION_FEATURE_ADDITIONS)],
+            rebuilt.loc[:, list(POSSESSION_FEATURE_ADDITIONS)],
         )
+
+    def test_same_season_final_average_cannot_change_target_features(self) -> None:
+        possession = team_season_possession(include_future_source=True)
+        baseline = build_possession_complete_dataset(
+            self.canonical,
+            self.history,
+            team_season_possession=possession,
+            model_b_period_start="1011",
+        )
+        mutated = possession.copy()
+        mutated.loc[mutated["source_season"].eq("1011"), "average_possession_pct"] = 99.0
+        rebuilt = build_possession_complete_dataset(
+            self.canonical,
+            self.history,
+            team_season_possession=mutated,
+            model_b_period_start="1011",
+        )
+        pd.testing.assert_frame_equal(
+            baseline.loc[:, list(POSSESSION_FEATURE_ADDITIONS)],
+            rebuilt.loc[:, list(POSSESSION_FEATURE_ADDITIONS)],
+        )
+
+    def test_promoted_team_missing_value_is_retained_for_training_imputation(self) -> None:
+        dataset = build_possession_complete_dataset(
+            self.canonical,
+            self.history,
+            team_season_possession=team_season_possession(include_beta=False),
+            model_b_period_start="1011",
+        )
+        self.assertEqual(len(dataset), len(self.canonical))
+        self.assertTrue(dataset["away_previous_season_possession"].isna().all())
+        self.assertTrue(dataset["possession_edge"].isna().all())
+
+    def test_missing_established_team_average_fails_instead_of_imputing(self) -> None:
+        canonical = synthetic_canonical(2)
+        canonical.loc[0, "season"] = "0910"
+        canonical.loc[1, "season"] = "1011"
+        with self.assertRaisesRegex(
+            MatchedExperimentError, "established EPL team 'beta'"
+        ):
+            build_lagged_possession_features(
+                canonical, team_season_possession(include_beta=False)
+            )
+
+    def test_same_season_source_target_mapping_is_rejected(self) -> None:
+        invalid = self.possession.copy()
+        invalid.loc[:, "source_season"] = "1011"
+        with self.assertRaisesRegex(MatchedExperimentError, "source season N-1"):
+            build_lagged_possession_features(self.canonical, invalid)
 
 
 class MatchedCohortContractTests(unittest.TestCase):
@@ -143,10 +191,11 @@ class MatchedCohortContractTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        canonical = possession_canonical(12)
+        canonical = synthetic_canonical(12)
         cls.dataset = build_possession_complete_dataset(
             canonical,
             build_team_history_frame(canonical),
+            team_season_possession=team_season_possession(),
             model_b_period_start="1011",
         )
 
@@ -191,15 +240,16 @@ class MatchedCohortContractTests(unittest.TestCase):
         with self.assertRaisesRegex(MatchedExperimentError, "differ"):
             assert_identical_model_match_ids(manifest, ids[:-1], ids)
 
-    def test_empty_possession_cohort_fails_explicitly(self) -> None:
+    def test_noncanonical_model_period_fails_explicitly(self) -> None:
         canonical = synthetic_canonical(8)
         with self.assertRaisesRegex(
-            MatchedExperimentError, "Possession-complete model dataset is empty"
+            MatchedExperimentError, "period start '1112' is not canonical"
         ):
             build_possession_complete_dataset(
                 canonical,
                 build_team_history_frame(canonical),
-                model_b_period_start="1011",
+                team_season_possession=team_season_possession(),
+                model_b_period_start="1112",
             )
 
 
