@@ -89,10 +89,16 @@ class FrozenRepositoryTests(unittest.TestCase):
             frozen = self.config["frozen_candidate"]
             paths = set(frozen["artifacts_sha256"]) | set(frozen["implementation_files_sha256"])
             paths.add("config/model_config.json")
+            from src.holdout import ADDITIONS, PROTOCOL, git_text
+            paths.update(ADDITIONS)
+            paths.add(PROTOCOL)
             for relative in paths:
                 destination = root / relative
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(PROJECT_ROOT / relative, destination)
+            git_patch = patch("src.holdout.git_text", side_effect=lambda _root, *args: git_text(PROJECT_ROOT, *args))
+            git_patch.start()
+            self.addCleanup(git_patch.stop)
             verify_freeze(root)
             for relative, message in (
                 ("config/model_config.json", "configuration checksum"),

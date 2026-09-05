@@ -287,10 +287,11 @@ def evaluate_saved_model(
 def build_parser() -> argparse.ArgumentParser:
     """Build the saved-model evaluation CLI parser."""
     parser = argparse.ArgumentParser(
-        description="Evaluate a saved EPL model without retraining or opening holdout."
+        description="Evaluate saved EPL models; final holdout requires selected + --frozen."
     )
-    parser.add_argument("--model-name", required=True, choices=SUPPORTED_MODELS)
-    parser.add_argument("--split", required=True, choices=SUPPORTED_SPLITS)
+    parser.add_argument("--model-name", required=True, choices=SUPPORTED_MODELS + ("selected",))
+    parser.add_argument("--split", required=True, choices=SUPPORTED_SPLITS + ("holdout",))
+    parser.add_argument("--frozen", action="store_true", help="open the approved final holdout once, or verify saved results")
     return parser
 
 
@@ -298,8 +299,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Run saved-model evaluation and print machine-readable metrics."""
     arguments = build_parser().parse_args(argv)
     try:
+        if arguments.model_name == "selected" or arguments.split == "holdout" or arguments.frozen:
+            if (arguments.model_name, arguments.split, arguments.frozen) != ("selected", "holdout", True):
+                raise EvaluationError("Final evaluation requires --model-name selected --split holdout --frozen.")
+            from src.holdout import evaluate_final_holdout
+            print(json.dumps(evaluate_final_holdout(), sort_keys=True))
+            return 0
         result = evaluate_saved_model(arguments.model_name, arguments.split)
-    except (EvaluationError, SplitError) as exc:
+    except (RuntimeError, OSError, ValueError, KeyError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
     output = dict(result)

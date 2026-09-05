@@ -58,8 +58,6 @@ def test_results(root: Path) -> dict:
         rows = list(csv.DictReader(source))
     if any(row["split"] not in {"test", "validation"} for row in rows):
         raise FreezeError("Only validation/test metrics may exist before the holdout is approved.")
-    if any((root / "reports").glob("*holdout*")):
-        raise FreezeError("A holdout report already exists; do not create a pre-holdout freeze.")
     result = {}
     for name in CANDIDATES:
         matching = [row for row in rows if row["model_name"] == name and row["split"] == "test"]
@@ -192,13 +190,16 @@ def verify_freeze(root: Path = PROJECT_ROOT) -> dict:
         raise FreezeError("Frozen selection differs from the test decision.")
     actual = implementation_hashes(root)
     if actual != frozen["implementation_files_sha256"] or digest(actual) != frozen["implementation_sha256"]:
-        raise FreezeError("Frozen implementation checksum mismatch.")
+        from src.holdout import verify_evaluation_extension
+        verify_evaluation_extension(root, config, actual)
     for path, checksum in frozen["artifacts_sha256"].items():
         resolved = (root / path).resolve()
         if not resolved.is_relative_to(root.resolve()):
             raise FreezeError("Frozen artifact path escapes the project.")
         if file_hash(resolved) != checksum:
             raise FreezeError(f"Frozen artifact checksum mismatch: {path}")
+    from src.holdout import verify_holdout_receipt
+    verify_holdout_receipt(root, config)
     return config
 
 
@@ -212,6 +213,8 @@ def freeze_candidate(root: Path = PROJECT_ROOT) -> dict:
     config = read_json(config_path)
     if config.get("frozen_at_utc"):
         return verify_freeze(root)
+    if any((root / "reports").glob("*holdout*")):
+        raise FreezeError("A holdout report already exists; do not create a pre-holdout freeze.")
     results = test_results(root)
     validate_candidates(root, results)
     selected = choose_candidate(results, config["max_macro_f1_drop"])
@@ -293,7 +296,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     print(f"selected_model={config['selected_model']}")
     print(f"freeze_record_sha256={config['freeze_record_sha256']}")
-    print("holdout_evaluated=False")
+    print(f"holdout_evaluated={(PROJECT_ROOT / 'reports/final_holdout_receipt.json').exists()}")
     return 0
 
 

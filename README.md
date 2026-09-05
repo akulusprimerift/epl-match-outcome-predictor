@@ -10,8 +10,8 @@ immutable raw EPL match files, leakage-safe pre-match features, frozen
 chronological splits, majority/logistic-regression benchmarks, and a tuned
 long-history XGBoost model. The coverage-matched baseline and possession model
 have also been trained and compared. Model B is the frozen final candidate.
-The final 2025/26 holdout has not been evaluated; Phase 9 requires explicit
-approval.
+Phase 9 has been approved. Its evaluation-only extension is tested and recorded
+before the final 2025/26 holdout is opened.
 
 ## Requirements
 
@@ -228,8 +228,35 @@ the pre-freeze parent, and the commit containing the configuration is the freeze
 commit. The configuration also has its own checksum, excluding that checksum
 field itself.
 
-Phase 9 may evaluate the frozen candidate only after explicit approval.
-The upcoming-fixture prediction command remains Phase 10 work.
+## Final holdout evaluation (Phase 9)
+
+After approval, run the frozen selected candidate exactly once:
+
+```bash
+python -m src.evaluate --model-name selected --split holdout --frozen
+```
+
+The command requires a clean working tree and a committed evaluation protocol
+in `config/phase9_protocol.json`. This separate record preserves the original
+Phase 8 configuration and all model, preprocessing, data, feature-building, and
+training checksums. It permits only the evaluation/verification adapters and
+their tests; the original inference functions are also checked against the
+Phase 8 commit. The model is loaded, never refitted.
+
+Outputs are `reports/final_holdout_results.csv`, a final confusion matrix,
+per-fixture probabilities, and `reports/final_holdout.md` comparing test and
+holdout results. A start record prevents repeat or concurrent inference; the
+completion receipt checksums every final output. Repeating the same command
+only verifies and returns saved results. An interrupted attempt remains locked:
+preserve its files for investigation, and do not delete the record or rerun
+inference. A fresh evaluation requires a new future holdout, not retuning on
+2025/26.
+
+The original model metadata and Phase 8 report remain immutable historical
+records. Current completion status is stored in
+`reports/final_holdout_receipt.json` and reported by the freeze verifier.
+The upcoming-fixture prediction command remains Phase 10 work and requires a
+separate request.
 
 ## Validate the project
 
