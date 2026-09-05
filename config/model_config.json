@@ -131,7 +131,324 @@
       }
     ]
   },
-  "selected_model": null,
-  "frozen_at_utc": null,
-  "git_commit": null
+  "selected_model": "model_b",
+  "frozen_at_utc": "2026-09-05T07:04:25.916556+00:00",
+  "git_commit": "0980258f828c63744ab7863eb3a032fdf67b3808",
+  "frozen_candidate": {
+    "model_name": "model_b",
+    "feature_set": "possession",
+    "feature_columns": [
+      "home_goals_for_avg_5",
+      "home_goals_against_avg_5",
+      "home_shots_avg_5",
+      "home_form_points_5",
+      "home_overall_ppg_5",
+      "home_venue_ppg_5",
+      "home_history_matches",
+      "home_venue_history_matches",
+      "away_goals_for_avg_5",
+      "away_goals_against_avg_5",
+      "away_shots_avg_5",
+      "away_form_points_5",
+      "away_overall_ppg_5",
+      "away_venue_ppg_5",
+      "away_history_matches",
+      "away_venue_history_matches",
+      "goals_scored_edge",
+      "defensive_edge",
+      "shots_edge",
+      "form_edge",
+      "venue_edge",
+      "history_edge",
+      "home_previous_season_possession",
+      "away_previous_season_possession",
+      "possession_edge"
+    ],
+    "parameters": {
+      "objective": "multi:softprob",
+      "num_class": 3,
+      "n_estimators": 500,
+      "learning_rate": 0.03,
+      "max_depth": 2,
+      "min_child_weight": 3,
+      "subsample": 0.9,
+      "colsample_bytree": 0.9,
+      "reg_lambda": 2.0,
+      "eval_metric": "mlogloss",
+      "early_stopping_rounds": 40,
+      "random_state": 42,
+      "n_jobs": 1,
+      "tree_method": "hist"
+    },
+    "classes": [
+      0,
+      1,
+      2
+    ],
+    "target_mapping": {
+      "A": 0,
+      "D": 1,
+      "H": 2
+    },
+    "best_iteration": 267,
+    "iteration_range": [
+      0,
+      268
+    ],
+    "model_path": "models/model_b_xgb.json",
+    "metadata_path": "models/model_b_metadata.json",
+    "preprocessing_path": "models/model_b_preprocessing.json",
+    "preprocessing": {
+      "feature_set": "possession",
+      "strategy": "median",
+      "fitted_on_split": "train",
+      "used_by": [
+        "model_b"
+      ],
+      "training_seasons": [
+        "1819",
+        "1920",
+        "2021",
+        "2122",
+        "2223"
+      ],
+      "training_match_count": 1900,
+      "training_date_min": "2018-08-10",
+      "training_date_max": "2023-05-28",
+      "feature_columns": [
+        "home_goals_for_avg_5",
+        "home_goals_against_avg_5",
+        "home_shots_avg_5",
+        "home_form_points_5",
+        "home_overall_ppg_5",
+        "home_venue_ppg_5",
+        "home_history_matches",
+        "home_venue_history_matches",
+        "away_goals_for_avg_5",
+        "away_goals_against_avg_5",
+        "away_shots_avg_5",
+        "away_form_points_5",
+        "away_overall_ppg_5",
+        "away_venue_ppg_5",
+        "away_history_matches",
+        "away_venue_history_matches",
+        "goals_scored_edge",
+        "defensive_edge",
+        "shots_edge",
+        "form_edge",
+        "venue_edge",
+        "history_edge",
+        "home_previous_season_possession",
+        "away_previous_season_possession",
+        "possession_edge"
+      ],
+      "median_values": {
+        "home_goals_for_avg_5": 1.2,
+        "home_goals_against_avg_5": 1.4,
+        "home_shots_avg_5": 12.0,
+        "home_form_points_5": 7.0,
+        "home_overall_ppg_5": 1.4,
+        "home_venue_ppg_5": 1.6,
+        "home_history_matches": 309.0,
+        "home_venue_history_matches": 154.0,
+        "away_goals_for_avg_5": 1.4,
+        "away_goals_against_avg_5": 1.4,
+        "away_shots_avg_5": 12.4,
+        "away_form_points_5": 7.0,
+        "away_overall_ppg_5": 1.4,
+        "away_venue_ppg_5": 1.2,
+        "away_history_matches": 309.0,
+        "away_venue_history_matches": 154.0,
+        "goals_scored_edge": 0.0,
+        "defensive_edge": 0.0,
+        "shots_edge": -0.3999999999999986,
+        "form_edge": 0.0,
+        "venue_edge": 0.3999999999999999,
+        "history_edge": 0.0,
+        "home_previous_season_possession": 51.0,
+        "away_previous_season_possession": 51.0,
+        "possession_edge": 0.0
+      }
+    },
+    "prediction_schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "home_team",
+        "away_team",
+        "match_date",
+        "model_name",
+        "model_version",
+        "probabilities",
+        "predicted_outcome",
+        "feature_as_of",
+        "warnings"
+      ],
+      "properties": {
+        "home_team": {
+          "type": "string"
+        },
+        "away_team": {
+          "type": "string"
+        },
+        "match_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "model_name": {
+          "type": "string"
+        },
+        "model_version": {
+          "type": "string"
+        },
+        "probabilities": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "away_win",
+            "draw",
+            "home_win"
+          ],
+          "properties": {
+            "away_win": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "draw": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "home_win": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "predicted_outcome": {
+          "type": "string",
+          "enum": [
+            "away_win",
+            "draw",
+            "home_win"
+          ]
+        },
+        "feature_as_of": {
+          "type": "string"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "probability_sum_tolerance": 1e-06,
+    "probability_class_mapping": {
+      "0": "away_win",
+      "1": "draw",
+      "2": "home_win"
+    },
+    "selection_test_results": {
+      "model_a": {
+        "log_loss": 1.0394918517570615,
+        "macro_f1": 0.3484263484263484,
+        "accuracy": 0.4710526315789474,
+        "row_count": 380
+      },
+      "model_a_matched": {
+        "log_loss": 1.0476214341380652,
+        "macro_f1": 0.3305959553321309,
+        "accuracy": 0.45,
+        "row_count": 380
+      },
+      "model_b": {
+        "log_loss": 1.031918963256467,
+        "macro_f1": 0.3664478423423653,
+        "accuracy": 0.4710526315789474,
+        "row_count": 380
+      }
+    },
+    "holdout_evaluated": false,
+    "implementation_files_sha256": {
+      "config/seasons.json": "9c67d213f0f3592247e7acacff0aae692ac81af7894f5cefd54d586f71703222",
+      "config/team_name_map.csv": "4c658be3cbb2aac125dc4124415c48ea42c8c6f7fb5b8817d0bd7c85bebbc1a7",
+      "requirements.lock.txt": "71a5d54f2f622dacfa27423a4c6cacfc4b7fcd691d70554a4fd67f4a7806a633",
+      "requirements.txt": "9cc1a41bd57f28b6810af1c8b6e8f00e950181902a22087745f03f5e471dfa8e",
+      "src/__init__.py": "db468f455cdcf17bec24b6514807af84f6815654d2c5690b56dc321ed20c849a",
+      "src/api_football_legacy.py": "9170893b2013baa776477006fc53a23c49bdd9a5d1fbc0cb7e0edcba98adab45",
+      "src/build_features.py": "562e8dfc37bd6da9516f935d1b14c038de16f4dde33d2fb86371150ac4c60bba",
+      "src/build_history.py": "1440582e53b8daa7a29c00fbf8d1f5606ae4fe30240bfa97b164e167e9fb03af",
+      "src/clean_data.py": "43fb0d0ae87238fcb318db0f16cc1b85a9931410580ea50abebcb6efbbaf6d4d",
+      "src/collect_possession.py": "1dff1d6685dadd82f0cd07f378bcc59bbfa33875e4c552494a0b716efc5fd68f",
+      "src/compare_models.py": "2cd8a55324f145ac8fddfde05d6b8492ba388eabc1fc0379dfb91c6d0e3ae46a",
+      "src/constants.py": "470f59ccd5d7b7f8fc5677f52dcc3c036674c6d8bb9799cf6bc7c841889ba4fb",
+      "src/download_data.py": "b1db216866e36a52ab8413f0dd60ec9b99bcd5518b8d523b7121d064d93ac8a3",
+      "src/evaluate.py": "96869334a093064e034638f895c4cabb333cbcafbc0d65d2881eef1861771044",
+      "src/freeze_model.py": "0545d9af7aab1e2388cca3d2f190ebbe048086a69375d5f17665e28f345c2308",
+      "src/matched_experiment.py": "80594715fd435320dbd248acf2b4729e4724a2e56c4cbb54e4532410fb65efe8",
+      "src/predict.py": "2f1571d24b6ec40f7289b0ffbb12332ae4acce487c6afaccf1388c363305ff8d",
+      "src/split_data.py": "848db7059c0a23d2beadc6907662ff2e95179586732638b55b084c2d518073d4",
+      "src/train_baselines.py": "413e59e2df2e058ca12503460d3fca4729dffec1227fefa34261782de258377e",
+      "src/train_xgboost.py": "ec046670867e62502273fcc0de9d70777c994297e519a28600aa83c927e6b033",
+      "tests/__init__.py": "b8f9b9a79deb9cfcb52d035533ef4b8ded22339776485e8d362460b7da15fed8",
+      "tests/test_api_football_legacy.py": "aedd0684689bfd7c6597468c42aaf29356ee7ece0f6904046139851008a8eef9",
+      "tests/test_data_contracts.py": "ebeb47d468968829d6feb4495d9d711bb0c3af65e0f51437e7d4c5a5fdf4e29b",
+      "tests/test_download_data.py": "c51dace745e189ad86e4735096787d773626a45e3aaf7cbec54d66043cf79bd9",
+      "tests/test_features.py": "39bd907a9162f82a4ab0cca077f8a4013befe9825ae2b9a72766362d91c18307",
+      "tests/test_freeze_model.py": "6491b463426357aa57a862d4dfa76b95e0cbf2c541c4a38c60587e26c77eeb98",
+      "tests/test_leakage.py": "ce690a62b0d2eb06c3b5e15303cb9ef0ebab04ba9c8462052258f1e0c47aa167",
+      "tests/test_matched_experiment.py": "3eee9146f28c82e7147e5c81b5986d4cff1fafc93fb092dd27ca9122ffbb9120",
+      "tests/test_model_outputs.py": "73b21955f7b3038ac12e5d5277c41486a6ac33f81548f7a812c71c8173810ec1",
+      "tests/test_possession_join.py": "25c84df731e1cd5da7268c0894ad47f7cb695df1c7edbd795e0cc094079b8bde",
+      "tests/test_project_structure.py": "9945f71131113b0d2bf3217b6faa04e82711e741a7352f1398858bf0a55997a1",
+      "tests/test_splits.py": "38528a3ef9d88ab73997243fd954f3ea8fec91ec712c84cf09c8e973e1aa493f",
+      "tests/test_xgboost_model.py": "86ff4b4f5d7e115fe9f083a82ac1b0e035d2d5f4629a094886f4ce185c330ffe"
+    },
+    "implementation_sha256": "162df31094cf22791379e06d3977d6d1fafc95663a3e77b2ee2ad5b81bd4630b",
+    "artifacts_sha256": {
+      "data/processed/canonical_matches.csv": "24b402bd2c46bb7e493828f0156b6951389c16106ca16678e181a3af187c4f60",
+      "data/processed/matched_model_dataset.csv": "fb301bcb5217fa05a6fc7b365fba137204897023559b3bec05cb7a3b825010b1",
+      "data/processed/matched_split_manifest.csv": "06e7f9edec928befef528a8052d6de96f830e9fef6cbd225e952b672f63ba5d3",
+      "data/processed/model_dataset.csv": "c0c15990aa0a95e4ed93998eddd2653b0972f17386bf89cba7151f96c29dfd8e",
+      "data/processed/split_manifest.csv": "957d4b3510908fbae446dacf31ffb8b65e7c3df5396a4986bcaba2fdc4027b03",
+      "data/processed/team_match_history.csv": "23b5969e99b73e8655770428f8b499b3fff63b2b7e1be4c5b2d4c10de202d5be",
+      "data/processed/team_season_possession.csv": "bc073bdc9aa6871597a036dbfbaaf386c7c12bb32a1758b970987ff8a54931ea",
+      "data/raw/football_data/E0_1011.csv": "8f5d37651aca8498d8041088835e3a734b79e2fcc34f66ca8516c650970810ce",
+      "data/raw/football_data/E0_1112.csv": "6cdb9963c311ca2e7d07eb429df721a2593cbd9c9fec55b9af82bca1a457b987",
+      "data/raw/football_data/E0_1213.csv": "1df561d34a9b79ff8cb1fccd4fd279d183e74cd871063a307ecf18f01e0d622f",
+      "data/raw/football_data/E0_1314.csv": "3cf16078fde2e0e6c6cb07ebdb20ca98d1a755c9508a18bbeb4ad6837fad2b42",
+      "data/raw/football_data/E0_1415.csv": "76b7858051ff6b17f46f49f26fdc70c1f29537270492606f5cc63d67fad5d149",
+      "data/raw/football_data/E0_1516.csv": "bd3502a18c38a1597fd9af62e2366b4015006d3528dd4d18b311bd6237bbc085",
+      "data/raw/football_data/E0_1617.csv": "9625a7652b5f98fbd3e2e4d378c851fc246693f3343e34a72428d5b6e864d3e0",
+      "data/raw/football_data/E0_1718.csv": "4f3389365ef3f7ac966764ed8ba67cf3b79f5aebed18dd224099c4b2c98bc67b",
+      "data/raw/football_data/E0_1819.csv": "7c096b3c2ecd54c6993d22eeea73450c2bde11e3457238b226b8f43c62dfc35e",
+      "data/raw/football_data/E0_1920.csv": "100037618b94f94057400bb02bf6bac4ef74ddaa58cde4b38370839c39caee61",
+      "data/raw/football_data/E0_2021.csv": "5afe63f69401457b8354eaacee24f9a3e520b3c3af6329564a9783e20d789c62",
+      "data/raw/football_data/E0_2122.csv": "335afcbabeb2939fa10ab39ba3e8215072d0b577cb8d0705c1e44c56e934e703",
+      "data/raw/football_data/E0_2223.csv": "8442792d3b614c94ea3cf381bd2736805889cc1713169035368fff19c3d02380",
+      "data/raw/football_data/E0_2324.csv": "b2e057b0ed959f198b0f63d2391c01239f3608e6de5db68edab3f88e04d07ff3",
+      "data/raw/football_data/E0_2425.csv": "d0c8ce4a96d886cf60cf101f570f4a3893844226f91c7bd769eb568c49edbfa4",
+      "data/raw/football_data/E0_2526.csv": "3e3a8352f9ada6789c508d6ca184424421fed56a30400904a4a327c583407e62",
+      "data/raw/manifest.json": "0b5441362d367e3ef3f5b99c0c2d8049d46baa55602a9294e2a7f9ff7138caf9",
+      "data/raw/sofascore/sofascore_epl_average_possession_2017-18_to_2025-26.csv": "85a590307f50a71db17533adab02594953495dfa949727ff3b50109870246188",
+      "models/model_a_matched_metadata.json": "15d2a1ed306a4ea3156547196288acf89de7d7f70c7b3d320846feb3e73652d8",
+      "models/model_a_matched_preprocessing.json": "a72d080963af66d54213ec2d0f48a0d339da507e0e2860adf8564567043434be",
+      "models/model_a_matched_xgb.json": "d6bdd40bc3aecc46e4658789df15f234577e93e993d549c8b862ba7b0a45d044",
+      "models/model_a_xgb.json": "db86fd2ae1e5349569cd9c2d21656b71ca40c073837cc93459377b677ca6ef75",
+      "models/model_b_metadata.json": "9d8f136d279684ba227322a773ce030face56c6e6d914ee2f52aa00b44b72af8",
+      "models/model_b_preprocessing.json": "4c4af5c1b99e92abd66051d6af635d2b563db70de0e69c202663924951c76646",
+      "models/model_b_xgb.json": "b3955017494353a8901638b113ee4b1d6c7c6744a87097299bb02632dc0b719f",
+      "models/model_metadata.json": "6d0216754c5adc2c45852cdb9f37b9c3973b3434a9c9bb68e25764ff67099bd6",
+      "models/preprocessing.json": "9bc59128efb7ae2b1cbb21c915707d101a13357040747c3bc49eff4612c398b7",
+      "reports/model_results.csv": "dd91f7cd28a445bebbe79b07d5cbb074ef3276874bfa4726b743346f5ba53ab4",
+      "reports/model_selection.md": "e3e7b545d0ad0b3f1c17fb7804912ec1d839bf3738c8fca0f931df155053d9f4",
+      "reports/possession_experiment.md": "e713a293f122d478fc8223df9f7d0a1dc95afb33423391389f37912bc1593e3a",
+      "reports/tuning_results.csv": "1a8afd6a535a5248a402e23f9c841aed0ff1dc6cfe28a4144fd54ed2a050ce83"
+    }
+  },
+  "freeze_record_sha256": "f3b9ac19656dc1a8218176250f182406895b4fa0bcff0cb3a8432a18cf79a530"
 }

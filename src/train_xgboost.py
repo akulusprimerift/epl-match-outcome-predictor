@@ -693,6 +693,11 @@ def train_xgboost_model(
         )
     project_root = project_root.resolve()
     config_path = project_root / "config" / "model_config.json"
+    from src.freeze_model import FreezeError, assert_unfrozen
+    try:
+        assert_unfrozen(project_root)
+    except FreezeError as exc:
+        raise XGBoostTrainingError(str(exc)) from exc
     search = load_search_config(config_path)
     if model_name == "model_a":
         policy = load_split_policy(config_path)

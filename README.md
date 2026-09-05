@@ -4,13 +4,14 @@ A reproducible Python project for predicting English Premier League match
 outcomes as away-win, draw, and home-win probabilities using only information
 available before kickoff.
 
-The repository has completed Phases 0 through 7 and contains a validated
+The repository has completed Phases 0 through 8 and contains a validated
 **SofaScore team-season possession dataset**. It contains
 immutable raw EPL match files, leakage-safe pre-match features, frozen
 chronological splits, majority/logistic-regression benchmarks, and a tuned
 long-history XGBoost model. The coverage-matched baseline and possession model
-have also been trained and compared. The final 2025/26 holdout has not been
-evaluated; Phase 8 model-selection freeze is the next phase.
+have also been trained and compared. Model B is the frozen final candidate.
+The final 2025/26 holdout has not been evaluated; Phase 9 requires explicit
+approval.
 
 ## Requirements
 
@@ -42,6 +43,11 @@ python -m pip install -r requirements.txt
 
 Exact versions used for the bootstrapped environment are recorded in
 `requirements.lock.txt`.
+
+The training commands below describe the pre-freeze workflow. Once Phase 8 is
+frozen, training entry points refuse to overwrite its artifacts. Preserve the
+local model JSON files under `models/`; the existing ignore policy keeps them
+out of Git, while the freeze records their exact checksums.
 
 ## Download EPL history
 
@@ -192,9 +198,38 @@ The completed comparison used 1,900 training, 380 validation, and 380 test
 fixtures for each model. Model B lowered test log loss from `1.047621` to
 `1.031919`, increased test macro F1 from `0.330596` to `0.366448`, and increased
 test accuracy from `0.450000` to `0.471053`. It therefore passes every declared
-Phase 7 incremental-value rule. This is not yet a production-model selection;
-that decision belongs to Phase 8. Full results are in
+Phase 7 incremental-value rule. Full results are in
 `reports/possession_experiment.md`.
+
+## Model selection freeze
+
+Phase 8 selected Model B under Section 10.6: its test log loss (`1.031919`) is
+lower than Model A (`1.039492`) and Model A-Matched (`1.047621`), and it has the
+highest macro F1 of those three candidates. The comparison uses the same 380
+test fixtures. The advantage is modest and has not yet been tested on the final
+holdout. The rationale is recorded in `reports/model_selection.md`.
+
+`config/model_config.json` records the selection and its timestamp. Its
+`frozen_candidate` section contains the exact 25-feature order, training-only
+preprocessing values, parameters, best iteration, labels, prediction schema,
+and checksums for the implementation, saved models, source data, and reports.
+The existing top-level `feature_columns` remains the baseline contract.
+
+Verify the freeze without running inference or changing files:
+
+```bash
+python -m src.freeze_model --verify
+```
+
+The creation command is `python -m src.freeze_model`; if already frozen, it
+only verifies the existing record. Implementation hashes normalize CRLF to LF;
+raw data and artifact checksums use exact bytes. The `git_commit` field records
+the pre-freeze parent, and the commit containing the configuration is the freeze
+commit. The configuration also has its own checksum, excluding that checksum
+field itself.
+
+Phase 9 may evaluate the frozen candidate only after explicit approval.
+The upcoming-fixture prediction command remains Phase 10 work.
 
 ## Validate the project
 

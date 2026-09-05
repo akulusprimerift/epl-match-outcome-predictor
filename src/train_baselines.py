@@ -392,6 +392,11 @@ def train_and_evaluate_baselines(
             f"Unsupported feature set {feature_set!r}; expected baseline."
         )
     project_root = project_root.resolve()
+    from src.freeze_model import FreezeError, assert_unfrozen
+    try:
+        assert_unfrozen(project_root)
+    except FreezeError as exc:
+        raise BaselineError(str(exc)) from exc
     model = read_model_dataset(
         project_root / "data" / "processed" / "model_dataset.csv"
     )
