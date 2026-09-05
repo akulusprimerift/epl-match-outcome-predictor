@@ -4,7 +4,7 @@ A reproducible Python project for predicting English Premier League match
 outcomes as away-win, draw, and home-win probabilities using only information
 available before kickoff.
 
-The repository has completed Phases 0 through 9 and contains a validated
+The repository has completed Phases 0 through 10 and contains a validated
 **SofaScore team-season possession dataset**. It contains
 immutable raw EPL match files, leakage-safe pre-match features, frozen
 chronological splits, majority/logistic-regression benchmarks, and a tuned
@@ -277,8 +277,56 @@ inference. A fresh evaluation requires a new future holdout, not retuning on
 The original model metadata and Phase 8 report remain immutable historical
 records. Current completion status is stored in
 `reports/final_holdout_receipt.json` and reported by the freeze verifier.
-The upcoming-fixture prediction command remains Phase 10 work and requires a
-separate request.
+
+## Upcoming-fixture prediction (Phase 10)
+
+With the project dependencies installed, request a prediction using exact
+canonical team names:
+
+```bash
+python -m src.predict --home "Arsenal" --away "Chelsea" --date 2026-09-12
+python -m src.predict --help
+```
+
+This is an illustrative user-supplied fixture, not a verified scheduled match.
+The command prints one JSON object containing `home_team`, `away_team`,
+`match_date`, `model_name`, `model_version`, `probabilities` (away win, draw,
+home win), `predicted_outcome`, `feature_as_of`, and `warnings`. The model
+version is the unchanged Phase 8 freeze-record checksum. Errors go to standard
+error with a nonzero exit status. No files are written or downloaded.
+
+The predictor loads the saved Model B and its training-only medians, builds
+the exact frozen 25-feature order, and maps probabilities through the model's
+class labels. It never refits the model or preprocessing. The prediction
+extension is recorded in `config/phase10_protocol.json`; the original Phase 8
+configuration, Phase 9 protocol, holdout reports, and training/feature-building
+implementations remain unchanged. The existing holdout command still returns
+its saved result without repeating inference.
+
+Important limits:
+
+- Only completed EPL fixtures strictly before the requested date contribute.
+  Dates on or before the latest stored match date are rejected; this command
+  does not offer historical backtesting.
+- The current snapshot ends on **2026-05-24**. Team histories more than 14 days
+  old produce warnings; this warning threshold does not change predictions.
+  The example September prediction therefore uses stale history, not live form.
+- For upcoming date-only requests, July 1 marks the new season. A 2026/27
+  fixture uses completed 2025/26 possession. The required preceding season must
+  have its complete 380-match history and 20-team possession table, with the
+  frozen coverage threshold satisfied. Later unsupported seasons fail clearly.
+- Missing prior EPL history or possession produces explicit warnings and uses
+  frozen training medians. Older possession seasons and other leagues are never
+  substituted. History counts remain available to the model.
+- Exact canonical names are required; for example, use `Manchester United`,
+  not `Man United`. Matching a historical EPL club does not verify its current
+  league membership or whether the fixture is scheduled.
+- `feature_as_of` is a match date, not a fabricated completion timestamp.
+
+Phase 10 acceptance passed all 147 tests, including feature parity with the
+existing pipeline, strict-date exclusion, deterministic normalized output,
+unknown-team errors, cold starts, and frozen-artifact checks. Documentation
+and reproducibility work beyond this command remains Phase 11.
 
 ## Validate the project
 

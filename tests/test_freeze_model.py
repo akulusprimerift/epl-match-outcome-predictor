@@ -92,6 +92,7 @@ class FrozenRepositoryTests(unittest.TestCase):
             from src.holdout import ADDITIONS, PROTOCOL, git_text
             paths.update(ADDITIONS)
             paths.add(PROTOCOL)
+            paths.update({"config/phase10_protocol.json", "tests/test_predict.py"})
             for relative in paths:
                 destination = root / relative
                 destination.parent.mkdir(parents=True, exist_ok=True)

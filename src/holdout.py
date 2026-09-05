@@ -61,7 +61,8 @@ def verify_evaluation_extension(root: Path, config: dict, actual: dict) -> None:
     if config != original_config or protocol.get("freeze_record_sha256") != config["freeze_record_sha256"]:
         raise FreezeError("Phase 9 configuration differs from the committed Phase 8 freeze.")
     if actual != protocol.get("implementation_files_sha256"):
-        raise FreezeError("Phase 9 implementation checksum mismatch.")
+        from src.predict import verify_prediction_extension
+        actual = verify_prediction_extension(root, config, actual, protocol)
     if set(actual) != set(frozen) | ADDITIONS:
         raise FreezeError("Unexpected Phase 9 implementation files.")
     for path, checksum in frozen.items():
