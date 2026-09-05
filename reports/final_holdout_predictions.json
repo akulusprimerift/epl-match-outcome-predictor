@@ -1,0 +1,3433 @@
+{
+  "model_name": "model_b",
+  "split": "holdout",
+  "season": "2526",
+  "probability_columns": [
+    "away_win",
+    "draw",
+    "home_win"
+  ],
+  "freeze_record_sha256": "f3b9ac19656dc1a8218176250f182406895b4fa0bcff0cb3a8432a18cf79a530",
+  "predictions": [
+    {
+      "match_id": "2526|2025-08-15|liverpool|afc-bournemouth",
+      "target": 2,
+      "probabilities": [
+        0.14273153458135626,
+        0.2588700094650687,
+        0.598398455953575
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-16|aston-villa|newcastle-united",
+      "target": 1,
+      "probabilities": [
+        0.39156783794068806,
+        0.14637789566451,
+        0.4620542663948019
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-16|brighton-and-hove-albion|fulham",
+      "target": 1,
+      "probabilities": [
+        0.32360784183763985,
+        0.22083789768331938,
+        0.45555426047904074
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-16|sunderland|west-ham-united",
+      "target": 2,
+      "probabilities": [
+        0.46985916003374995,
+        0.20444183356228224,
+        0.3256990064039678
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-16|tottenham-hotspur|burnley",
+      "target": 2,
+      "probabilities": [
+        0.2771081667707587,
+        0.202256161008122,
+        0.5206356722211193
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-16|wolverhampton-wanderers|manchester-city",
+      "target": 0,
+      "probabilities": [
+        0.6426093982872546,
+        0.19898285868815008,
+        0.1584077430245953
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-17|chelsea|crystal-palace",
+      "target": 1,
+      "probabilities": [
+        0.18838126676706574,
+        0.2528458199971047,
+        0.5587729132358296
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-17|manchester-united|arsenal",
+      "target": 0,
+      "probabilities": [
+        0.22625255584716797,
+        0.22786104679107666,
+        0.5458863973617554
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-17|nottingham-forest|brentford",
+      "target": 2,
+      "probabilities": [
+        0.34827920794487,
+        0.2744901180267334,
+        0.3772306740283966
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-18|leeds-united|everton",
+      "target": 2,
+      "probabilities": [
+        0.4183710106479083,
+        0.3591892879838923,
+        0.22243970136819935
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-22|west-ham-united|chelsea",
+      "target": 0,
+      "probabilities": [
+        0.4750307641932596,
+        0.23251575924503085,
+        0.29245347656170956
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-23|afc-bournemouth|wolverhampton-wanderers",
+      "target": 2,
+      "probabilities": [
+        0.26960081263781804,
+        0.2408204859617425,
+        0.48957870140043946
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-23|arsenal|leeds-united",
+      "target": 2,
+      "probabilities": [
+        0.1541468099995497,
+        0.13344325522909328,
+        0.7124099347713571
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-23|brentford|aston-villa",
+      "target": 2,
+      "probabilities": [
+        0.41695396354657305,
+        0.24905104187283045,
+        0.3339949945805965
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-23|burnley|sunderland",
+      "target": 2,
+      "probabilities": [
+        0.27735191583633423,
+        0.2196229100227356,
+        0.5030251741409302
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-23|manchester-city|tottenham-hotspur",
+      "target": 0,
+      "probabilities": [
+        0.07430361679555413,
+        0.08233813634745268,
+        0.8433582468569932
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-24|crystal-palace|nottingham-forest",
+      "target": 1,
+      "probabilities": [
+        0.19519431598194964,
+        0.3038597061654969,
+        0.5009459778525535
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-24|everton|brighton-and-hove-albion",
+      "target": 2,
+      "probabilities": [
+        0.2740921255606953,
+        0.22787482017838268,
+        0.49803305426092204
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-24|fulham|manchester-united",
+      "target": 1,
+      "probabilities": [
+        0.5412517705373202,
+        0.1651134913397805,
+        0.29363473812289925
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-25|newcastle-united|liverpool",
+      "target": 0,
+      "probabilities": [
+        0.3438214063644409,
+        0.2120145559310913,
+        0.4441640377044678
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-30|chelsea|fulham",
+      "target": 2,
+      "probabilities": [
+        0.19837021827697754,
+        0.22642391920089722,
+        0.5752058625221252
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-30|leeds-united|newcastle-united",
+      "target": 1,
+      "probabilities": [
+        0.37574387716483704,
+        0.2767081939193068,
+        0.3475479289158562
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-30|manchester-united|burnley",
+      "target": 2,
+      "probabilities": [
+        0.17121534049510956,
+        0.16182585060596466,
+        0.6669588088989258
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-30|sunderland|brentford",
+      "target": 2,
+      "probabilities": [
+        0.35618650913238525,
+        0.2359657883644104,
+        0.40784770250320435
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-30|tottenham-hotspur|afc-bournemouth",
+      "target": 0,
+      "probabilities": [
+        0.20111091734634218,
+        0.19790324863647296,
+        0.6009858340171849
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-30|wolverhampton-wanderers|everton",
+      "target": 0,
+      "probabilities": [
+        0.424888355281602,
+        0.36469529165909564,
+        0.21041635305930237
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-31|aston-villa|crystal-palace",
+      "target": 0,
+      "probabilities": [
+        0.2915801232111381,
+        0.3156538417545651,
+        0.3927660350342968
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-31|brighton-and-hove-albion|manchester-city",
+      "target": 2,
+      "probabilities": [
+        0.6099428857888481,
+        0.17962000461131314,
+        0.21043710959983872
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-31|liverpool|arsenal",
+      "target": 2,
+      "probabilities": [
+        0.32084778907441464,
+        0.2983684628715653,
+        0.38078374805402004
+      ]
+    },
+    {
+      "match_id": "2526|2025-08-31|nottingham-forest|west-ham-united",
+      "target": 0,
+      "probabilities": [
+        0.3042224049568176,
+        0.2636023461818695,
+        0.43217524886131287
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-13|afc-bournemouth|brighton-and-hove-albion",
+      "target": 2,
+      "probabilities": [
+        0.3713663629104603,
+        0.22465834691102346,
+        0.4039752901785162
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-13|arsenal|nottingham-forest",
+      "target": 2,
+      "probabilities": [
+        0.13776665720691297,
+        0.11697251920443,
+        0.745260823588657
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-13|brentford|chelsea",
+      "target": 1,
+      "probabilities": [
+        0.5685037032590972,
+        0.29821242235060436,
+        0.13328387439029848
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-13|crystal-palace|sunderland",
+      "target": 1,
+      "probabilities": [
+        0.2046095667895804,
+        0.23006101757106132,
+        0.5653294156393583
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-13|everton|aston-villa",
+      "target": 1,
+      "probabilities": [
+        0.2684097508069947,
+        0.21711175986791373,
+        0.5144784893250915
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-13|fulham|leeds-united",
+      "target": 2,
+      "probabilities": [
+        0.20446358925794944,
+        0.2294191156241166,
+        0.566117295117934
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-13|newcastle-united|wolverhampton-wanderers",
+      "target": 2,
+      "probabilities": [
+        0.1565709263086319,
+        0.19268380105495453,
+        0.6507452726364136
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-13|west-ham-united|tottenham-hotspur",
+      "target": 0,
+      "probabilities": [
+        0.33382929366318265,
+        0.19505900725898168,
+        0.4711116990778357
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-14|burnley|liverpool",
+      "target": 0,
+      "probabilities": [
+        0.6032326907401188,
+        0.20653613219464023,
+        0.190231177065241
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-14|manchester-city|manchester-united",
+      "target": 2,
+      "probabilities": [
+        0.25090657916943493,
+        0.22470446751402415,
+        0.5243889533165409
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-20|brighton-and-hove-albion|tottenham-hotspur",
+      "target": 1,
+      "probabilities": [
+        0.43538887991342307,
+        0.22799270665667334,
+        0.33661841342990356
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-20|burnley|nottingham-forest",
+      "target": 1,
+      "probabilities": [
+        0.2517985849500546,
+        0.3197231102154785,
+        0.42847830483446686
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-20|fulham|brentford",
+      "target": 2,
+      "probabilities": [
+        0.20444676280021667,
+        0.25178995728492737,
+        0.543763279914856
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-20|liverpool|everton",
+      "target": 2,
+      "probabilities": [
+        0.14534653506656683,
+        0.2507976852238523,
+        0.6038557797095808
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-20|manchester-united|chelsea",
+      "target": 2,
+      "probabilities": [
+        0.21896612644195557,
+        0.25810980796813965,
+        0.5229240655899048
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-20|west-ham-united|crystal-palace",
+      "target": 0,
+      "probabilities": [
+        0.2437956703840396,
+        0.29505295440712437,
+        0.46115137520883603
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-20|wolverhampton-wanderers|leeds-united",
+      "target": 0,
+      "probabilities": [
+        0.36004048585891724,
+        0.1895846724510193,
+        0.4503748416900635
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-21|afc-bournemouth|newcastle-united",
+      "target": 1,
+      "probabilities": [
+        0.4186704034009456,
+        0.1986050844608222,
+        0.3827245121382322
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-21|arsenal|manchester-city",
+      "target": 1,
+      "probabilities": [
+        0.24845660473276987,
+        0.25026974827855075,
+        0.5012736469886794
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-21|sunderland|aston-villa",
+      "target": 1,
+      "probabilities": [
+        0.3780371434081452,
+        0.19104593422872024,
+        0.43091692236313456
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-27|brentford|manchester-united",
+      "target": 2,
+      "probabilities": [
+        0.5570503126256308,
+        0.18285711927073237,
+        0.26009256810363685
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-27|chelsea|brighton-and-hove-albion",
+      "target": 0,
+      "probabilities": [
+        0.13188662928511755,
+        0.17728940878377245,
+        0.69082396193111
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-27|crystal-palace|liverpool",
+      "target": 2,
+      "probabilities": [
+        0.46445567799972526,
+        0.20660842080737415,
+        0.32893590119290056
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-27|leeds-united|afc-bournemouth",
+      "target": 1,
+      "probabilities": [
+        0.4438188142153444,
+        0.21661077762560216,
+        0.3395704081590534
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-27|manchester-city|burnley",
+      "target": 2,
+      "probabilities": [
+        0.12404217478601504,
+        0.17064075044810212,
+        0.7053170747658828
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-27|nottingham-forest|sunderland",
+      "target": 0,
+      "probabilities": [
+        0.40016074181082073,
+        0.2578001099169287,
+        0.3420391482722505
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-27|tottenham-hotspur|wolverhampton-wanderers",
+      "target": 1,
+      "probabilities": [
+        0.12255087206329673,
+        0.1654200615517818,
+        0.7120290663849215
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-28|aston-villa|fulham",
+      "target": 2,
+      "probabilities": [
+        0.3236589028631987,
+        0.20955328402240778,
+        0.46678781311439355
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-28|newcastle-united|arsenal",
+      "target": 0,
+      "probabilities": [
+        0.4823409401323971,
+        0.2398258191424987,
+        0.2778332407251042
+      ]
+    },
+    {
+      "match_id": "2526|2025-09-29|everton|west-ham-united",
+      "target": 1,
+      "probabilities": [
+        0.1924726275346466,
+        0.2374416511488453,
+        0.5700857213165081
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-03|afc-bournemouth|fulham",
+      "target": 2,
+      "probabilities": [
+        0.2696140964386747,
+        0.21754671309073698,
+        0.5128391904705883
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-04|arsenal|west-ham-united",
+      "target": 2,
+      "probabilities": [
+        0.10966306261467235,
+        0.24075418890084466,
+        0.6495827484844829
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-04|chelsea|liverpool",
+      "target": 2,
+      "probabilities": [
+        0.2824204648262401,
+        0.24829343701283446,
+        0.4692860981609255
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-04|leeds-united|tottenham-hotspur",
+      "target": 0,
+      "probabilities": [
+        0.4562264246873133,
+        0.24800714111306843,
+        0.2957664341996183
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-04|manchester-united|sunderland",
+      "target": 2,
+      "probabilities": [
+        0.14997432679014425,
+        0.21118442084835706,
+        0.6388412523614987
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-05|aston-villa|burnley",
+      "target": 2,
+      "probabilities": [
+        0.17752083174946404,
+        0.15814878517832712,
+        0.6643303830722088
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-05|brentford|manchester-city",
+      "target": 0,
+      "probabilities": [
+        0.4525437816219395,
+        0.2765293634972166,
+        0.2709268548808439
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-05|everton|crystal-palace",
+      "target": 2,
+      "probabilities": [
+        0.3127778172492981,
+        0.29280441999435425,
+        0.39441776275634766
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-05|newcastle-united|nottingham-forest",
+      "target": 2,
+      "probabilities": [
+        0.22275310754776,
+        0.34711912274360657,
+        0.4301277697086334
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-05|wolverhampton-wanderers|brighton-and-hove-albion",
+      "target": 1,
+      "probabilities": [
+        0.3392636629609911,
+        0.21873536193677912,
+        0.4420009751022298
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-18|brighton-and-hove-albion|newcastle-united",
+      "target": 2,
+      "probabilities": [
+        0.34494391083717346,
+        0.26298388838768005,
+        0.3920722007751465
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-18|burnley|leeds-united",
+      "target": 2,
+      "probabilities": [
+        0.3575199384605912,
+        0.21982118994796918,
+        0.4226588715914396
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-18|crystal-palace|afc-bournemouth",
+      "target": 1,
+      "probabilities": [
+        0.26999470591545105,
+        0.21395793557167053,
+        0.5160473585128784
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-18|fulham|arsenal",
+      "target": 0,
+      "probabilities": [
+        0.6058367761598576,
+        0.18500133685773626,
+        0.2091618869824061
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-18|manchester-city|everton",
+      "target": 2,
+      "probabilities": [
+        0.17178959888533354,
+        0.257982905835168,
+        0.5702274952794985
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-18|nottingham-forest|chelsea",
+      "target": 0,
+      "probabilities": [
+        0.5512708075912658,
+        0.23148503444276905,
+        0.2172441579659652
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-18|sunderland|wolverhampton-wanderers",
+      "target": 2,
+      "probabilities": [
+        0.3094833493232727,
+        0.19617098569869995,
+        0.49434566497802734
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-19|liverpool|manchester-united",
+      "target": 0,
+      "probabilities": [
+        0.20393145358971038,
+        0.1866503097623402,
+        0.6094182366479495
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-19|tottenham-hotspur|aston-villa",
+      "target": 0,
+      "probabilities": [
+        0.19926264288238754,
+        0.19570338142802174,
+        0.6050339756895907
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-20|west-ham-united|brentford",
+      "target": 0,
+      "probabilities": [
+        0.2393066918746634,
+        0.15445147684889252,
+        0.606241831276444
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-24|leeds-united|west-ham-united",
+      "target": 2,
+      "probabilities": [
+        0.2609524053051351,
+        0.23761268742046693,
+        0.501434907274398
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-25|brentford|liverpool",
+      "target": 2,
+      "probabilities": [
+        0.5835226948119013,
+        0.1924938765911423,
+        0.22398342859695639
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-25|chelsea|sunderland",
+      "target": 0,
+      "probabilities": [
+        0.14152553466669418,
+        0.17710046206264998,
+        0.6813740032706558
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-25|manchester-united|brighton-and-hove-albion",
+      "target": 2,
+      "probabilities": [
+        0.17244135819550283,
+        0.224960052223204,
+        0.6025985895812932
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-25|newcastle-united|fulham",
+      "target": 2,
+      "probabilities": [
+        0.2101095232400156,
+        0.19278507509187087,
+        0.5971054016681135
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-26|afc-bournemouth|nottingham-forest",
+      "target": 2,
+      "probabilities": [
+        0.25283492364987503,
+        0.2853160883580473,
+        0.4618489879920777
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-26|arsenal|crystal-palace",
+      "target": 2,
+      "probabilities": [
+        0.1825942166480027,
+        0.24263392794278585,
+        0.5747718554092114
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-26|aston-villa|manchester-city",
+      "target": 2,
+      "probabilities": [
+        0.5192089158178704,
+        0.22164561184712667,
+        0.2591454723350029
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-26|everton|tottenham-hotspur",
+      "target": 0,
+      "probabilities": [
+        0.29185215508497225,
+        0.27348656277318484,
+        0.4346612821418429
+      ]
+    },
+    {
+      "match_id": "2526|2025-10-26|wolverhampton-wanderers|burnley",
+      "target": 0,
+      "probabilities": [
+        0.27702959546358596,
+        0.1756020135998126,
+        0.5473683909366014
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-01|brighton-and-hove-albion|leeds-united",
+      "target": 2,
+      "probabilities": [
+        0.22133737301844536,
+        0.255163472376621,
+        0.5234991546049336
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-01|burnley|arsenal",
+      "target": 0,
+      "probabilities": [
+        0.6167482825629157,
+        0.18549281635124706,
+        0.1977589010858372
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-01|crystal-palace|brentford",
+      "target": 2,
+      "probabilities": [
+        0.22926973613292764,
+        0.19270398638534586,
+        0.5780262774817265
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-01|fulham|wolverhampton-wanderers",
+      "target": 2,
+      "probabilities": [
+        0.24492330088982883,
+        0.25971678673376997,
+        0.4953599123764012
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-01|liverpool|aston-villa",
+      "target": 2,
+      "probabilities": [
+        0.19137766386933136,
+        0.2909355672915111,
+        0.5176867688391575
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-01|nottingham-forest|manchester-united",
+      "target": 1,
+      "probabilities": [
+        0.5959614692914924,
+        0.22000428199780828,
+        0.18403424871069934
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-01|tottenham-hotspur|chelsea",
+      "target": 0,
+      "probabilities": [
+        0.2967842309708664,
+        0.24717376372735989,
+        0.4560420053017737
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-02|manchester-city|afc-bournemouth",
+      "target": 2,
+      "probabilities": [
+        0.11313198169672543,
+        0.17893091801014788,
+        0.7079371002931267
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-02|west-ham-united|newcastle-united",
+      "target": 2,
+      "probabilities": [
+        0.3553273379802704,
+        0.19469642639160156,
+        0.44997623562812805
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-03|sunderland|everton",
+      "target": 1,
+      "probabilities": [
+        0.3300842741156898,
+        0.3149702940872399,
+        0.3549454317970703
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-08|chelsea|wolverhampton-wanderers",
+      "target": 2,
+      "probabilities": [
+        0.11754148058716896,
+        0.19157462392969798,
+        0.6908838954831331
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-08|everton|fulham",
+      "target": 2,
+      "probabilities": [
+        0.27164805340242465,
+        0.22070007355064264,
+        0.5076518730469327
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-08|sunderland|arsenal",
+      "target": 1,
+      "probabilities": [
+        0.6554049058137862,
+        0.20229522281005313,
+        0.14229987137616065
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-08|tottenham-hotspur|manchester-united",
+      "target": 1,
+      "probabilities": [
+        0.26327117885245116,
+        0.1949593246734243,
+        0.5417694964741245
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-08|west-ham-united|burnley",
+      "target": 2,
+      "probabilities": [
+        0.24240849144484078,
+        0.14816379988681674,
+        0.6094277086683425
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-09|aston-villa|afc-bournemouth",
+      "target": 2,
+      "probabilities": [
+        0.2630571126937866,
+        0.19293475151062012,
+        0.5440081357955933
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-09|brentford|newcastle-united",
+      "target": 2,
+      "probabilities": [
+        0.3664812743663788,
+        0.235437273979187,
+        0.3980814516544342
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-09|crystal-palace|brighton-and-hove-albion",
+      "target": 1,
+      "probabilities": [
+        0.31624551512274235,
+        0.19160411903882738,
+        0.49215036583843025
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-09|manchester-city|liverpool",
+      "target": 2,
+      "probabilities": [
+        0.27979930818379956,
+        0.1957275093238427,
+        0.5244731824923577
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-09|nottingham-forest|leeds-united",
+      "target": 2,
+      "probabilities": [
+        0.36346927285194397,
+        0.2842095196247101,
+        0.35232120752334595
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-22|afc-bournemouth|west-ham-united",
+      "target": 1,
+      "probabilities": [
+        0.36324967036395284,
+        0.2561013476878806,
+        0.38064898194816654
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-22|brighton-and-hove-albion|brentford",
+      "target": 2,
+      "probabilities": [
+        0.21594242429819072,
+        0.252055074988975,
+        0.5320025007128343
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-22|burnley|chelsea",
+      "target": 0,
+      "probabilities": [
+        0.6083873691674283,
+        0.17928045032264145,
+        0.21233218050993027
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-22|fulham|sunderland",
+      "target": 2,
+      "probabilities": [
+        0.2177883749541156,
+        0.26157499139234397,
+        0.5206366336535404
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-22|liverpool|nottingham-forest",
+      "target": 0,
+      "probabilities": [
+        0.1560688270309917,
+        0.1498934581907553,
+        0.694037714778253
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-22|newcastle-united|manchester-city",
+      "target": 2,
+      "probabilities": [
+        0.48006843686409756,
+        0.234075690839098,
+        0.2858558722968044
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-22|wolverhampton-wanderers|crystal-palace",
+      "target": 0,
+      "probabilities": [
+        0.38109055161476135,
+        0.3068467378616333,
+        0.31206271052360535
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-23|arsenal|tottenham-hotspur",
+      "target": 2,
+      "probabilities": [
+        0.16586744290985336,
+        0.23364176649922827,
+        0.6004907905909184
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-23|leeds-united|aston-villa",
+      "target": 0,
+      "probabilities": [
+        0.49791600558286897,
+        0.23896486701123615,
+        0.2631191274058949
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-24|manchester-united|everton",
+      "target": 0,
+      "probabilities": [
+        0.13102641701698303,
+        0.3431684672832489,
+        0.5258051156997681
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-29|brentford|burnley",
+      "target": 2,
+      "probabilities": [
+        0.3060232881321483,
+        0.22673638026335122,
+        0.4672403316045005
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-29|everton|newcastle-united",
+      "target": 0,
+      "probabilities": [
+        0.2636221984568566,
+        0.2185690584565559,
+        0.5178087430865875
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-29|manchester-city|leeds-united",
+      "target": 2,
+      "probabilities": [
+        0.073155708065959,
+        0.08626335795027495,
+        0.840580933983766
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-29|sunderland|afc-bournemouth",
+      "target": 2,
+      "probabilities": [
+        0.23887988924980164,
+        0.2083124816417694,
+        0.552807629108429
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-29|tottenham-hotspur|fulham",
+      "target": 0,
+      "probabilities": [
+        0.2409863919019699,
+        0.1951134353876114,
+        0.5639001727104187
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-30|aston-villa|wolverhampton-wanderers",
+      "target": 2,
+      "probabilities": [
+        0.12895806518072084,
+        0.14936526564852196,
+        0.7216766691707572
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-30|chelsea|arsenal",
+      "target": 1,
+      "probabilities": [
+        0.21344564537039928,
+        0.26972296432073467,
+        0.516831390308866
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-30|crystal-palace|manchester-united",
+      "target": 0,
+      "probabilities": [
+        0.39582071887912507,
+        0.19135550234781212,
+        0.4128237787730628
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-30|nottingham-forest|brighton-and-hove-albion",
+      "target": 0,
+      "probabilities": [
+        0.4371815323829651,
+        0.21967807412147522,
+        0.3431403934955597
+      ]
+    },
+    {
+      "match_id": "2526|2025-11-30|west-ham-united|liverpool",
+      "target": 0,
+      "probabilities": [
+        0.5041820632300703,
+        0.1570120076989535,
+        0.3388059290709762
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-02|afc-bournemouth|everton",
+      "target": 0,
+      "probabilities": [
+        0.37206102526369766,
+        0.3369504015728951,
+        0.29098857316340726
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-02|fulham|manchester-city",
+      "target": 0,
+      "probabilities": [
+        0.5709817835395997,
+        0.18947700591453892,
+        0.23954121054586142
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-02|newcastle-united|tottenham-hotspur",
+      "target": 1,
+      "probabilities": [
+        0.30836496216602566,
+        0.224390584593871,
+        0.46724445324010333
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-03|arsenal|brentford",
+      "target": 2,
+      "probabilities": [
+        0.14656622052641718,
+        0.20898254771608646,
+        0.6444512317574964
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-03|brighton-and-hove-albion|aston-villa",
+      "target": 0,
+      "probabilities": [
+        0.40886913511547046,
+        0.23409443396048443,
+        0.35703643092404513
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-03|burnley|crystal-palace",
+      "target": 0,
+      "probabilities": [
+        0.40872377157211304,
+        0.2878263294696808,
+        0.3034498989582062
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-03|leeds-united|chelsea",
+      "target": 2,
+      "probabilities": [
+        0.5912673385252455,
+        0.22691844065608918,
+        0.1818142208186653
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-03|liverpool|sunderland",
+      "target": 1,
+      "probabilities": [
+        0.16309132929010198,
+        0.2101604758179117,
+        0.6267481948919863
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-03|wolverhampton-wanderers|nottingham-forest",
+      "target": 0,
+      "probabilities": [
+        0.38119294531303316,
+        0.30547367366991485,
+        0.313333381017052
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-04|manchester-united|west-ham-united",
+      "target": 1,
+      "probabilities": [
+        0.11719814292186925,
+        0.1976998507291034,
+        0.6851020063490273
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-06|afc-bournemouth|chelsea",
+      "target": 1,
+      "probabilities": [
+        0.6046092926082226,
+        0.2235048346667041,
+        0.17188587272507333
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-06|aston-villa|arsenal",
+      "target": 2,
+      "probabilities": [
+        0.46966796413558776,
+        0.1758661690970336,
+        0.3544658667673786
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-06|everton|nottingham-forest",
+      "target": 2,
+      "probabilities": [
+        0.26968856842253897,
+        0.3266531131668951,
+        0.4036583184105659
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-06|leeds-united|liverpool",
+      "target": 1,
+      "probabilities": [
+        0.5569003224372864,
+        0.2136475294828415,
+        0.22945214807987213
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-06|manchester-city|sunderland",
+      "target": 2,
+      "probabilities": [
+        0.10322830388630343,
+        0.1386634152729337,
+        0.7581082808407629
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-06|newcastle-united|burnley",
+      "target": 2,
+      "probabilities": [
+        0.19919585884815666,
+        0.2022788643497398,
+        0.5985252768021035
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-06|tottenham-hotspur|brentford",
+      "target": 2,
+      "probabilities": [
+        0.232430562376976,
+        0.18690378963947296,
+        0.580665647983551
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-07|brighton-and-hove-albion|west-ham-united",
+      "target": 1,
+      "probabilities": [
+        0.289924642743926,
+        0.23048960475654587,
+        0.4795857524995282
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-07|fulham|crystal-palace",
+      "target": 0,
+      "probabilities": [
+        0.230464953638091,
+        0.42922884865446165,
+        0.34030619770744736
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-08|wolverhampton-wanderers|manchester-united",
+      "target": 0,
+      "probabilities": [
+        0.592788833164836,
+        0.1639714736929975,
+        0.24323969314216654
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-13|arsenal|wolverhampton-wanderers",
+      "target": 2,
+      "probabilities": [
+        0.11337095330102812,
+        0.13718761299270968,
+        0.7494414337062622
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-13|burnley|fulham",
+      "target": 0,
+      "probabilities": [
+        0.419487327337265,
+        0.2009648084640503,
+        0.3795478641986847
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-13|chelsea|everton",
+      "target": 2,
+      "probabilities": [
+        0.14811898988662645,
+        0.22396585679003383,
+        0.6279151533233397
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-13|liverpool|brighton-and-hove-albion",
+      "target": 2,
+      "probabilities": [
+        0.23441001074284284,
+        0.21233122908081922,
+        0.5532587601763379
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-14|brentford|leeds-united",
+      "target": 1,
+      "probabilities": [
+        0.2557519147617893,
+        0.25718773092141173,
+        0.48706035431679895
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-14|crystal-palace|manchester-city",
+      "target": 0,
+      "probabilities": [
+        0.5619826316833496,
+        0.17696520686149597,
+        0.2610521614551544
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-14|nottingham-forest|tottenham-hotspur",
+      "target": 2,
+      "probabilities": [
+        0.3512536883354187,
+        0.2685983180999756,
+        0.3801479935646057
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-14|sunderland|newcastle-united",
+      "target": 2,
+      "probabilities": [
+        0.44331942329762647,
+        0.21174637114245806,
+        0.3449342055599155
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-14|west-ham-united|aston-villa",
+      "target": 0,
+      "probabilities": [
+        0.39516557440655153,
+        0.24404052627207418,
+        0.3607938993213743
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-15|manchester-united|afc-bournemouth",
+      "target": 1,
+      "probabilities": [
+        0.1275761352524838,
+        0.16760587201153468,
+        0.7048179927359816
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-20|afc-bournemouth|burnley",
+      "target": 1,
+      "probabilities": [
+        0.24662754307132279,
+        0.217457133791702,
+        0.5359153231369752
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-20|brighton-and-hove-albion|sunderland",
+      "target": 1,
+      "probabilities": [
+        0.11565507431380119,
+        0.13292911054510875,
+        0.7514158151410901
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-20|everton|arsenal",
+      "target": 0,
+      "probabilities": [
+        0.38078200817108154,
+        0.27953916788101196,
+        0.3396788239479065
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-20|leeds-united|crystal-palace",
+      "target": 2,
+      "probabilities": [
+        0.4096531271934509,
+        0.2926560044288635,
+        0.29769086837768555
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-20|manchester-city|west-ham-united",
+      "target": 2,
+      "probabilities": [
+        0.08781627369337662,
+        0.14386294460602975,
+        0.7683207817005936
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-20|newcastle-united|chelsea",
+      "target": 1,
+      "probabilities": [
+        0.4350182284409336,
+        0.24393840897266839,
+        0.32104336258639804
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-20|tottenham-hotspur|liverpool",
+      "target": 0,
+      "probabilities": [
+        0.32895085744925906,
+        0.21299800179913628,
+        0.4580511407516047
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-20|wolverhampton-wanderers|brentford",
+      "target": 0,
+      "probabilities": [
+        0.3759755790233612,
+        0.21693134307861328,
+        0.4070930778980255
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-21|aston-villa|manchester-united",
+      "target": 2,
+      "probabilities": [
+        0.5033469200134277,
+        0.1349712312221527,
+        0.36168184876441956
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-22|fulham|nottingham-forest",
+      "target": 2,
+      "probabilities": [
+        0.18908458384619403,
+        0.4244667165140296,
+        0.38644869963977635
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-26|manchester-united|newcastle-united",
+      "target": 2,
+      "probabilities": [
+        0.11225481490951997,
+        0.1799463833896467,
+        0.7077988017008333
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-27|arsenal|brighton-and-hove-albion",
+      "target": 2,
+      "probabilities": [
+        0.20480688490836838,
+        0.1359126656094492,
+        0.6592804494821825
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-27|brentford|afc-bournemouth",
+      "target": 2,
+      "probabilities": [
+        0.3564096689224243,
+        0.2165672779083252,
+        0.4270230531692505
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-27|burnley|everton",
+      "target": 1,
+      "probabilities": [
+        0.4095234274864197,
+        0.2692737877368927,
+        0.3212027847766876
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-27|chelsea|aston-villa",
+      "target": 0,
+      "probabilities": [
+        0.2776205539703369,
+        0.29937833547592163,
+        0.42300111055374146
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-27|liverpool|wolverhampton-wanderers",
+      "target": 2,
+      "probabilities": [
+        0.1102042711510936,
+        0.14663179109519875,
+        0.7431639377537076
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-27|nottingham-forest|manchester-city",
+      "target": 0,
+      "probabilities": [
+        0.6524940631912043,
+        0.23238317322160046,
+        0.11512276358719523
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-27|west-ham-united|fulham",
+      "target": 0,
+      "probabilities": [
+        0.3665998170793111,
+        0.2186860376988042,
+        0.4147141452218847
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-28|crystal-palace|tottenham-hotspur",
+      "target": 0,
+      "probabilities": [
+        0.40872034974572957,
+        0.22583387936151747,
+        0.36544577089275293
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-28|sunderland|leeds-united",
+      "target": 1,
+      "probabilities": [
+        0.32813629508018494,
+        0.22502022981643677,
+        0.4468434751033783
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-30|arsenal|aston-villa",
+      "target": 2,
+      "probabilities": [
+        0.15399226087354836,
+        0.1959152759338833,
+        0.6500924631925683
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-30|burnley|newcastle-united",
+      "target": 0,
+      "probabilities": [
+        0.4802228450609114,
+        0.18752607796146886,
+        0.33225107697761974
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-30|chelsea|afc-bournemouth",
+      "target": 1,
+      "probabilities": [
+        0.161721991922289,
+        0.21203041392610095,
+        0.62624759415161
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-30|manchester-united|wolverhampton-wanderers",
+      "target": 1,
+      "probabilities": [
+        0.06222583866768186,
+        0.07823474413772136,
+        0.8595394171945968
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-30|nottingham-forest|everton",
+      "target": 0,
+      "probabilities": [
+        0.2927256735347011,
+        0.3866735581554902,
+        0.3206007683098087
+      ]
+    },
+    {
+      "match_id": "2526|2025-12-30|west-ham-united|brighton-and-hove-albion",
+      "target": 1,
+      "probabilities": [
+        0.3314853857236298,
+        0.18826062696783802,
+        0.4802539873085322
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-01|brentford|tottenham-hotspur",
+      "target": 1,
+      "probabilities": [
+        0.3978457928345861,
+        0.2719063677815685,
+        0.33024783938384533
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-01|crystal-palace|fulham",
+      "target": 1,
+      "probabilities": [
+        0.30969632133388997,
+        0.20677747140493202,
+        0.483526207261178
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-01|liverpool|leeds-united",
+      "target": 1,
+      "probabilities": [
+        0.2323597922485974,
+        0.1482026047201129,
+        0.6194376030312897
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-01|sunderland|manchester-city",
+      "target": 1,
+      "probabilities": [
+        0.7031471938832758,
+        0.193305408755106,
+        0.10354739736161821
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-03|afc-bournemouth|arsenal",
+      "target": 0,
+      "probabilities": [
+        0.6486869760444622,
+        0.18426608215573062,
+        0.16704694179980717
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-03|aston-villa|nottingham-forest",
+      "target": 2,
+      "probabilities": [
+        0.2359237600587678,
+        0.3040130643840711,
+        0.4600631755571611
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-03|brighton-and-hove-albion|burnley",
+      "target": 2,
+      "probabilities": [
+        0.1793922376994945,
+        0.23369164862086483,
+        0.5869161136796407
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-03|wolverhampton-wanderers|west-ham-united",
+      "target": 2,
+      "probabilities": [
+        0.3801232931036248,
+        0.22441350258012865,
+        0.3954632043162466
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-04|everton|brentford",
+      "target": 0,
+      "probabilities": [
+        0.19602982699871063,
+        0.1895570307970047,
+        0.6144131422042847
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-04|fulham|liverpool",
+      "target": 1,
+      "probabilities": [
+        0.5019081905768542,
+        0.24400027459860257,
+        0.2540915348245432
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-04|leeds-united|manchester-united",
+      "target": 1,
+      "probabilities": [
+        0.47278370748782594,
+        0.20932452068739354,
+        0.3178917718247805
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-04|manchester-city|chelsea",
+      "target": 1,
+      "probabilities": [
+        0.2274378619361561,
+        0.1753391720253476,
+        0.5972229660384963
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-04|newcastle-united|crystal-palace",
+      "target": 2,
+      "probabilities": [
+        0.18907700760777307,
+        0.4074325324212392,
+        0.40349045997098776
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-04|tottenham-hotspur|sunderland",
+      "target": 1,
+      "probabilities": [
+        0.168858833513014,
+        0.18404104482944109,
+        0.6471001216575449
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-06|west-ham-united|nottingham-forest",
+      "target": 0,
+      "probabilities": [
+        0.31547177778100305,
+        0.28070516230777387,
+        0.403823059911223
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-07|afc-bournemouth|tottenham-hotspur",
+      "target": 2,
+      "probabilities": [
+        0.4436897039413452,
+        0.23597589135169983,
+        0.32033440470695496
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-07|brentford|sunderland",
+      "target": 2,
+      "probabilities": [
+        0.33303675055503845,
+        0.25690850615501404,
+        0.4100547432899475
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-07|burnley|manchester-united",
+      "target": 1,
+      "probabilities": [
+        0.5770511203125454,
+        0.15725619069505306,
+        0.2656926889924016
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-07|crystal-palace|aston-villa",
+      "target": 1,
+      "probabilities": [
+        0.4502516888194541,
+        0.22442617525575348,
+        0.3253221359247924
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-07|everton|wolverhampton-wanderers",
+      "target": 1,
+      "probabilities": [
+        0.21505357965986668,
+        0.2013140529785768,
+        0.5836323673615565
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-07|fulham|chelsea",
+      "target": 2,
+      "probabilities": [
+        0.4860524833202362,
+        0.22590219974517822,
+        0.28804531693458557
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-07|manchester-city|brighton-and-hove-albion",
+      "target": 1,
+      "probabilities": [
+        0.15739115134530357,
+        0.22736407951330664,
+        0.6152447691413898
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-07|newcastle-united|leeds-united",
+      "target": 2,
+      "probabilities": [
+        0.2753923360433729,
+        0.1866974765076105,
+        0.5379101874490166
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-08|arsenal|liverpool",
+      "target": 1,
+      "probabilities": [
+        0.13332298994018094,
+        0.17568945179981524,
+        0.6909875582600038
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-17|chelsea|brentford",
+      "target": 2,
+      "probabilities": [
+        0.2276904149240008,
+        0.3222937987867714,
+        0.45001578628922784
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-17|leeds-united|fulham",
+      "target": 2,
+      "probabilities": [
+        0.44299584287380234,
+        0.2157687077384417,
+        0.34123544938775596
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-17|liverpool|burnley",
+      "target": 1,
+      "probabilities": [
+        0.13011225282476827,
+        0.14497455090436037,
+        0.7249131962708714
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-17|manchester-united|manchester-city",
+      "target": 2,
+      "probabilities": [
+        0.32986936464711075,
+        0.21804927614404673,
+        0.4520813592088425
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-17|nottingham-forest|arsenal",
+      "target": 1,
+      "probabilities": [
+        0.6165853646906411,
+        0.2126838533180378,
+        0.1707307819913211
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-17|sunderland|crystal-palace",
+      "target": 2,
+      "probabilities": [
+        0.3496044471977816,
+        0.3328667779902584,
+        0.31752877481196
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-17|tottenham-hotspur|west-ham-united",
+      "target": 0,
+      "probabilities": [
+        0.1461927890777588,
+        0.19739878177642822,
+        0.656408429145813
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-18|aston-villa|everton",
+      "target": 0,
+      "probabilities": [
+        0.286097913980484,
+        0.3160843253135681,
+        0.3978177607059479
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-18|wolverhampton-wanderers|newcastle-united",
+      "target": 1,
+      "probabilities": [
+        0.48046203015857847,
+        0.19293915650429855,
+        0.326598813337123
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-19|brighton-and-hove-albion|afc-bournemouth",
+      "target": 1,
+      "probabilities": [
+        0.1762686696092586,
+        0.20837618721092027,
+        0.6153551431798211
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-24|afc-bournemouth|liverpool",
+      "target": 2,
+      "probabilities": [
+        0.6089130367824568,
+        0.19380167750410687,
+        0.19728528571343634
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-24|burnley|tottenham-hotspur",
+      "target": 1,
+      "probabilities": [
+        0.5318021932781396,
+        0.189429765624695,
+        0.27876804109716535
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-24|fulham|brighton-and-hove-albion",
+      "target": 2,
+      "probabilities": [
+        0.23724740743637085,
+        0.2546904683113098,
+        0.5080621242523193
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-24|manchester-city|wolverhampton-wanderers",
+      "target": 2,
+      "probabilities": [
+        0.11713670717790904,
+        0.19083235520865122,
+        0.6920309376134397
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-24|west-ham-united|sunderland",
+      "target": 2,
+      "probabilities": [
+        0.2939010306283985,
+        0.18910442574477832,
+        0.5169945436268232
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-25|arsenal|manchester-united",
+      "target": 0,
+      "probabilities": [
+        0.2541347108165218,
+        0.22144771782386724,
+        0.524417571359611
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-25|brentford|nottingham-forest",
+      "target": 0,
+      "probabilities": [
+        0.24311165149343533,
+        0.36979799911680816,
+        0.3870903493897565
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-25|crystal-palace|chelsea",
+      "target": 0,
+      "probabilities": [
+        0.5194889384431979,
+        0.20237942341535425,
+        0.27813163814144787
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-25|newcastle-united|aston-villa",
+      "target": 0,
+      "probabilities": [
+        0.2088589103349881,
+        0.2043985605895305,
+        0.5867425290754814
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-26|everton|leeds-united",
+      "target": 1,
+      "probabilities": [
+        0.25400333130379504,
+        0.25416474069146755,
+        0.49183192800473735
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-31|brighton-and-hove-albion|everton",
+      "target": 1,
+      "probabilities": [
+        0.3048418073403297,
+        0.3841500465825186,
+        0.3110081460771517
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-31|chelsea|west-ham-united",
+      "target": 2,
+      "probabilities": [
+        0.1773089643911863,
+        0.2375500237576667,
+        0.585141011851147
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-31|leeds-united|arsenal",
+      "target": 0,
+      "probabilities": [
+        0.5280607781392104,
+        0.24494151041085988,
+        0.22699771144992972
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-31|liverpool|newcastle-united",
+      "target": 2,
+      "probabilities": [
+        0.2025509923696518,
+        0.23050542175769806,
+        0.5669435858726501
+      ]
+    },
+    {
+      "match_id": "2526|2026-01-31|wolverhampton-wanderers|afc-bournemouth",
+      "target": 0,
+      "probabilities": [
+        0.3246253575962197,
+        0.2059283795622757,
+        0.46944626284150465
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-01|aston-villa|brentford",
+      "target": 0,
+      "probabilities": [
+        0.2349436248102244,
+        0.20726139534620353,
+        0.5577949798435721
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-01|manchester-united|fulham",
+      "target": 2,
+      "probabilities": [
+        0.14948097094120041,
+        0.2060541690298046,
+        0.644464860028995
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-01|nottingham-forest|crystal-palace",
+      "target": 1,
+      "probabilities": [
+        0.30981507897377014,
+        0.3459170460700989,
+        0.344267874956131
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-01|tottenham-hotspur|manchester-city",
+      "target": 1,
+      "probabilities": [
+        0.254418622899888,
+        0.22456463685175643,
+        0.5210167402483555
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-02|sunderland|burnley",
+      "target": 2,
+      "probabilities": [
+        0.2724700231482085,
+        0.2225137170774681,
+        0.5050162597743234
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-06|leeds-united|nottingham-forest",
+      "target": 2,
+      "probabilities": [
+        0.29898295697519056,
+        0.30730197749441795,
+        0.3937150655303915
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-07|afc-bournemouth|aston-villa",
+      "target": 1,
+      "probabilities": [
+        0.5289124846458435,
+        0.18477430939674377,
+        0.2863132059574127
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-07|arsenal|sunderland",
+      "target": 2,
+      "probabilities": [
+        0.1422118608152208,
+        0.17010941371810795,
+        0.6876787254666712
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-07|burnley|west-ham-united",
+      "target": 0,
+      "probabilities": [
+        0.4361955951510547,
+        0.20474169268434325,
+        0.35906271216460206
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-07|fulham|everton",
+      "target": 0,
+      "probabilities": [
+        0.26255008578300476,
+        0.4255450963973999,
+        0.31190481781959534
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-07|manchester-united|tottenham-hotspur",
+      "target": 2,
+      "probabilities": [
+        0.2773978370815838,
+        0.15961847961517453,
+        0.5629836833032417
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-07|newcastle-united|brentford",
+      "target": 0,
+      "probabilities": [
+        0.26543936133384705,
+        0.1983439028263092,
+        0.5362167358398438
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-07|wolverhampton-wanderers|chelsea",
+      "target": 0,
+      "probabilities": [
+        0.5097807125714527,
+        0.22609897294788023,
+        0.26412031448066703
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-08|brighton-and-hove-albion|crystal-palace",
+      "target": 0,
+      "probabilities": [
+        0.24910737945299416,
+        0.39612287873212815,
+        0.3547697418148777
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-08|liverpool|manchester-city",
+      "target": 0,
+      "probabilities": [
+        0.20848889959587008,
+        0.2183689805622247,
+        0.5731421198419052
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-10|chelsea|leeds-united",
+      "target": 1,
+      "probabilities": [
+        0.1811258697845301,
+        0.160297681698134,
+        0.6585764485173359
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-10|everton|afc-bournemouth",
+      "target": 0,
+      "probabilities": [
+        0.28966959016011995,
+        0.22121805453815813,
+        0.4891123553017219
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-10|tottenham-hotspur|newcastle-united",
+      "target": 0,
+      "probabilities": [
+        0.18156160414218903,
+        0.20383517444133759,
+        0.6146032214164734
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-10|west-ham-united|manchester-united",
+      "target": 1,
+      "probabilities": [
+        0.4618871510028839,
+        0.18457677960395813,
+        0.35353606939315796
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-11|aston-villa|brighton-and-hove-albion",
+      "target": 2,
+      "probabilities": [
+        0.22684397479426785,
+        0.18285652049948337,
+        0.5902995047062488
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-11|crystal-palace|burnley",
+      "target": 0,
+      "probabilities": [
+        0.23824534530178743,
+        0.22844136442069304,
+        0.5333132902775195
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-11|manchester-city|fulham",
+      "target": 2,
+      "probabilities": [
+        0.14703774452209473,
+        0.2573959231376648,
+        0.5955663323402405
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-11|nottingham-forest|wolverhampton-wanderers",
+      "target": 1,
+      "probabilities": [
+        0.34405937790870667,
+        0.21663367748260498,
+        0.43930694460868835
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-11|sunderland|liverpool",
+      "target": 0,
+      "probabilities": [
+        0.6186496388107323,
+        0.18024621488131373,
+        0.20110414630795398
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-12|brentford|arsenal",
+      "target": 1,
+      "probabilities": [
+        0.5022576750670478,
+        0.25543840261926665,
+        0.24230392231368555
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-18|wolverhampton-wanderers|arsenal",
+      "target": 1,
+      "probabilities": [
+        0.6045008301734924,
+        0.19439390301704407,
+        0.2011052668094635
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-21|aston-villa|leeds-united",
+      "target": 1,
+      "probabilities": [
+        0.2079147491416968,
+        0.1748771000598565,
+        0.6172081507984467
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-21|brentford|brighton-and-hove-albion",
+      "target": 0,
+      "probabilities": [
+        0.38532037691236665,
+        0.22339237402058762,
+        0.3912872490670457
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-21|chelsea|burnley",
+      "target": 1,
+      "probabilities": [
+        0.13975545972221284,
+        0.14751412194243255,
+        0.7127304183353546
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-21|manchester-city|newcastle-united",
+      "target": 2,
+      "probabilities": [
+        0.17715953554450772,
+        0.2748380344336932,
+        0.548002430021799
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-21|west-ham-united|afc-bournemouth",
+      "target": 1,
+      "probabilities": [
+        0.2882676253438424,
+        0.1984976171775587,
+        0.5132347574785988
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-22|crystal-palace|wolverhampton-wanderers",
+      "target": 2,
+      "probabilities": [
+        0.24748348452200042,
+        0.2095011708289036,
+        0.543015344649096
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-22|nottingham-forest|liverpool",
+      "target": 0,
+      "probabilities": [
+        0.5591611266136169,
+        0.18335947394371033,
+        0.25747939944267273
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-22|sunderland|fulham",
+      "target": 0,
+      "probabilities": [
+        0.31440669298171997,
+        0.21559903025627136,
+        0.46999427676200867
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-22|tottenham-hotspur|arsenal",
+      "target": 0,
+      "probabilities": [
+        0.24894537402608058,
+        0.266278926525696,
+        0.4847756994482234
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-23|everton|manchester-united",
+      "target": 0,
+      "probabilities": [
+        0.333219702046816,
+        0.24483053021385476,
+        0.42194976773932924
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-27|wolverhampton-wanderers|aston-villa",
+      "target": 2,
+      "probabilities": [
+        0.4859281625130225,
+        0.20726717136106407,
+        0.30680466612591345
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-28|afc-bournemouth|sunderland",
+      "target": 1,
+      "probabilities": [
+        0.2159768705361149,
+        0.1736288718470595,
+        0.6103942576168256
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-28|burnley|brentford",
+      "target": 0,
+      "probabilities": [
+        0.34042670308271933,
+        0.22913216861688587,
+        0.43044112830039477
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-28|leeds-united|manchester-city",
+      "target": 0,
+      "probabilities": [
+        0.5440073175432478,
+        0.2569912450608982,
+        0.1990014373958539
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-28|liverpool|west-ham-united",
+      "target": 2,
+      "probabilities": [
+        0.1234154991005399,
+        0.2390165466729632,
+        0.6375679542264969
+      ]
+    },
+    {
+      "match_id": "2526|2026-02-28|newcastle-united|everton",
+      "target": 0,
+      "probabilities": [
+        0.26817945445118707,
+        0.3599071013899774,
+        0.37191344415883554
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-01|arsenal|chelsea",
+      "target": 2,
+      "probabilities": [
+        0.2627759952180384,
+        0.28060934783844194,
+        0.4566146569435196
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-01|brighton-and-hove-albion|nottingham-forest",
+      "target": 2,
+      "probabilities": [
+        0.27060885043766647,
+        0.3873663958122252,
+        0.34202475375010827
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-01|fulham|tottenham-hotspur",
+      "target": 2,
+      "probabilities": [
+        0.398683100938797,
+        0.23398903012275696,
+        0.36732786893844604
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-01|manchester-united|crystal-palace",
+      "target": 2,
+      "probabilities": [
+        0.15092840790748596,
+        0.33760979771614075,
+        0.5114617943763733
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-03|afc-bournemouth|brentford",
+      "target": 1,
+      "probabilities": [
+        0.22467338218311614,
+        0.2142752323828707,
+        0.5610513854340131
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-03|everton|burnley",
+      "target": 2,
+      "probabilities": [
+        0.2031450746568993,
+        0.25431571875120884,
+        0.5425392065918918
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-03|leeds-united|sunderland",
+      "target": 0,
+      "probabilities": [
+        0.35904957469029314,
+        0.23663687273726788,
+        0.404313552572439
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-03|wolverhampton-wanderers|liverpool",
+      "target": 2,
+      "probabilities": [
+        0.634127845851662,
+        0.18845931904823604,
+        0.1774128351001019
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-04|aston-villa|chelsea",
+      "target": 0,
+      "probabilities": [
+        0.4838403843116588,
+        0.17599628078954158,
+        0.3401633348987996
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-04|brighton-and-hove-albion|arsenal",
+      "target": 0,
+      "probabilities": [
+        0.5466926097869873,
+        0.2278597354888916,
+        0.2254476547241211
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-04|fulham|west-ham-united",
+      "target": 0,
+      "probabilities": [
+        0.32420429587364197,
+        0.2606378197669983,
+        0.41515788435935974
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-04|manchester-city|nottingham-forest",
+      "target": 1,
+      "probabilities": [
+        0.21729492817379642,
+        0.12897820578548005,
+        0.6537268660407235
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-04|newcastle-united|manchester-united",
+      "target": 2,
+      "probabilities": [
+        0.4321139454841614,
+        0.27908211946487427,
+        0.28880393505096436
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-05|tottenham-hotspur|crystal-palace",
+      "target": 0,
+      "probabilities": [
+        0.18602779611738054,
+        0.3802278354594234,
+        0.433744368423196
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-14|arsenal|everton",
+      "target": 2,
+      "probabilities": [
+        0.18804239016834484,
+        0.27180606531807877,
+        0.5401515445135764
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-14|burnley|afc-bournemouth",
+      "target": 1,
+      "probabilities": [
+        0.3729982078075409,
+        0.23900657892227173,
+        0.3879952132701874
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-14|chelsea|newcastle-united",
+      "target": 0,
+      "probabilities": [
+        0.20554580059374566,
+        0.2322366993286193,
+        0.562217500077635
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-14|sunderland|brighton-and-hove-albion",
+      "target": 0,
+      "probabilities": [
+        0.40204406967562123,
+        0.22247046727819142,
+        0.37548546304618735
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-14|west-ham-united|manchester-city",
+      "target": 1,
+      "probabilities": [
+        0.5159788881534006,
+        0.1857937629757453,
+        0.29822734887085406
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-15|crystal-palace|leeds-united",
+      "target": 1,
+      "probabilities": [
+        0.27490467242754507,
+        0.22994740649979423,
+        0.4951479210726607
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-15|liverpool|tottenham-hotspur",
+      "target": 1,
+      "probabilities": [
+        0.09170939841649978,
+        0.14856812468594405,
+        0.7597224768975561
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-15|manchester-united|aston-villa",
+      "target": 2,
+      "probabilities": [
+        0.13108003530144796,
+        0.1817975396453601,
+        0.6871224250531919
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-15|nottingham-forest|fulham",
+      "target": 1,
+      "probabilities": [
+        0.439077837439711,
+        0.2002136170927768,
+        0.3607085454675122
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-16|brentford|wolverhampton-wanderers",
+      "target": 1,
+      "probabilities": [
+        0.35890645323554354,
+        0.19699345822622566,
+        0.4441000885382308
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-20|afc-bournemouth|manchester-united",
+      "target": 1,
+      "probabilities": [
+        0.4811799586698382,
+        0.18337315197088958,
+        0.33544688935927225
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-21|brighton-and-hove-albion|liverpool",
+      "target": 2,
+      "probabilities": [
+        0.5374020934104919,
+        0.18563583493232727,
+        0.2769620716571808
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-21|everton|chelsea",
+      "target": 2,
+      "probabilities": [
+        0.4072398068678322,
+        0.25416097802403503,
+        0.3385992151081328
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-21|fulham|burnley",
+      "target": 2,
+      "probabilities": [
+        0.1913850094997142,
+        0.2422469813636086,
+        0.5663680091366772
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-21|leeds-united|brentford",
+      "target": 1,
+      "probabilities": [
+        0.3791991641759499,
+        0.21370613040206418,
+        0.40709470542198595
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-22|aston-villa|west-ham-united",
+      "target": 2,
+      "probabilities": [
+        0.3467370128663039,
+        0.20799302494494729,
+        0.4452699621887488
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-22|newcastle-united|sunderland",
+      "target": 0,
+      "probabilities": [
+        0.19795024394989014,
+        0.1975122094154358,
+        0.6045375466346741
+      ]
+    },
+    {
+      "match_id": "2526|2026-03-22|tottenham-hotspur|nottingham-forest",
+      "target": 0,
+      "probabilities": [
+        0.26422712994298725,
+        0.1560931252268888,
+        0.579679744830124
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-10|west-ham-united|wolverhampton-wanderers",
+      "target": 2,
+      "probabilities": [
+        0.27661246473509765,
+        0.1795101639555419,
+        0.5438773713093604
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-11|arsenal|afc-bournemouth",
+      "target": 0,
+      "probabilities": [
+        0.2326109294982393,
+        0.2438651955703675,
+        0.5235238749313932
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-11|brentford|everton",
+      "target": 1,
+      "probabilities": [
+        0.38882569637375164,
+        0.2999923616645444,
+        0.31118194196170396
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-11|burnley|brighton-and-hove-albion",
+      "target": 0,
+      "probabilities": [
+        0.3769810610109884,
+        0.2989390581530052,
+        0.3240798808360064
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-11|liverpool|fulham",
+      "target": 2,
+      "probabilities": [
+        0.18084484338760376,
+        0.18292111158370972,
+        0.6362340450286865
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-12|chelsea|manchester-city",
+      "target": 0,
+      "probabilities": [
+        0.3797147572040558,
+        0.2608259916305542,
+        0.35945925116539
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-12|crystal-palace|newcastle-united",
+      "target": 2,
+      "probabilities": [
+        0.32667044291899267,
+        0.20541809805360584,
+        0.4679114590274015
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-12|nottingham-forest|aston-villa",
+      "target": 1,
+      "probabilities": [
+        0.36984201714631887,
+        0.23446486540936134,
+        0.3956931174443198
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-12|sunderland|tottenham-hotspur",
+      "target": 2,
+      "probabilities": [
+        0.30067941546440125,
+        0.1858316957950592,
+        0.5134888887405396
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-13|manchester-united|leeds-united",
+      "target": 0,
+      "probabilities": [
+        0.13739767773000655,
+        0.11371293003643251,
+        0.7488893922335609
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-18|brentford|fulham",
+      "target": 1,
+      "probabilities": [
+        0.45105385488592714,
+        0.20749197646927695,
+        0.34145416864479594
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-18|chelsea|manchester-united",
+      "target": 0,
+      "probabilities": [
+        0.2979537977853625,
+        0.21344762504611722,
+        0.4885985771685203
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-18|leeds-united|wolverhampton-wanderers",
+      "target": 2,
+      "probabilities": [
+        0.3977147936820984,
+        0.19496235251426697,
+        0.40732285380363464
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-18|newcastle-united|afc-bournemouth",
+      "target": 0,
+      "probabilities": [
+        0.3645712489570863,
+        0.19642652863899662,
+        0.43900222240391706
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-18|tottenham-hotspur|brighton-and-hove-albion",
+      "target": 1,
+      "probabilities": [
+        0.27028520526201755,
+        0.2565371547065469,
+        0.4731776400314355
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-19|aston-villa|sunderland",
+      "target": 2,
+      "probabilities": [
+        0.2731293060443012,
+        0.19909029605715584,
+        0.5277803978985429
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-19|everton|liverpool",
+      "target": 0,
+      "probabilities": [
+        0.47861067886980413,
+        0.20966378479194,
+        0.3117255363382559
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-19|manchester-city|arsenal",
+      "target": 2,
+      "probabilities": [
+        0.18752403277867985,
+        0.25803565594500816,
+        0.554440311276312
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-19|nottingham-forest|burnley",
+      "target": 2,
+      "probabilities": [
+        0.2929339023550182,
+        0.27481665388296084,
+        0.43224944376202096
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-20|crystal-palace|west-ham-united",
+      "target": 1,
+      "probabilities": [
+        0.29198089241981506,
+        0.21356889605522156,
+        0.4944502115249634
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-21|brighton-and-hove-albion|chelsea",
+      "target": 2,
+      "probabilities": [
+        0.5716913938522339,
+        0.1801072210073471,
+        0.248201385140419
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-22|afc-bournemouth|leeds-united",
+      "target": 1,
+      "probabilities": [
+        0.30985351473529593,
+        0.24902903291496536,
+        0.4411174523497387
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-22|burnley|manchester-city",
+      "target": 0,
+      "probabilities": [
+        0.643698732742705,
+        0.18702524343057741,
+        0.1692760238267176
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-24|sunderland|nottingham-forest",
+      "target": 0,
+      "probabilities": [
+        0.26558654708902396,
+        0.29584994030445994,
+        0.4385635126065161
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-25|arsenal|newcastle-united",
+      "target": 2,
+      "probabilities": [
+        0.14720604043015897,
+        0.20375164156782094,
+        0.6490423180020201
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-25|fulham|aston-villa",
+      "target": 2,
+      "probabilities": [
+        0.26665950616179424,
+        0.20421460879488615,
+        0.5291258850433196
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-25|liverpool|crystal-palace",
+      "target": 2,
+      "probabilities": [
+        0.13674644043285966,
+        0.21002317100832377,
+        0.6532303885588165
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-25|west-ham-united|everton",
+      "target": 2,
+      "probabilities": [
+        0.25783453160031233,
+        0.3396952849535729,
+        0.40247018344611474
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-25|wolverhampton-wanderers|tottenham-hotspur",
+      "target": 0,
+      "probabilities": [
+        0.49459215293883135,
+        0.2039702531717529,
+        0.3014375938894157
+      ]
+    },
+    {
+      "match_id": "2526|2026-04-27|manchester-united|brentford",
+      "target": 2,
+      "probabilities": [
+        0.15258004806697226,
+        0.19454323665668855,
+        0.6528767152763392
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-01|leeds-united|burnley",
+      "target": 2,
+      "probabilities": [
+        0.23661534135616807,
+        0.1730062637775203,
+        0.5903783948663116
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-02|arsenal|fulham",
+      "target": 2,
+      "probabilities": [
+        0.1849016547203064,
+        0.20834773778915405,
+        0.6067506074905396
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-02|brentford|west-ham-united",
+      "target": 2,
+      "probabilities": [
+        0.4270813294375339,
+        0.22597605663466622,
+        0.3469426139277999
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-02|newcastle-united|brighton-and-hove-albion",
+      "target": 2,
+      "probabilities": [
+        0.3656397272837081,
+        0.29273907222566226,
+        0.34162120049062966
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-02|wolverhampton-wanderers|sunderland",
+      "target": 1,
+      "probabilities": [
+        0.34988308995613726,
+        0.229122913751689,
+        0.42099399629217377
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-03|afc-bournemouth|crystal-palace",
+      "target": 2,
+      "probabilities": [
+        0.3331626355648041,
+        0.3053973615169525,
+        0.3614400029182434
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-03|aston-villa|tottenham-hotspur",
+      "target": 0,
+      "probabilities": [
+        0.40174522982945815,
+        0.21077045718055537,
+        0.3874843129899865
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-03|manchester-united|liverpool",
+      "target": 2,
+      "probabilities": [
+        0.2846983884364847,
+        0.2552337570418788,
+        0.4600678545216365
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-04|chelsea|nottingham-forest",
+      "target": 0,
+      "probabilities": [
+        0.2950201972577005,
+        0.2203295710731979,
+        0.4846502316691016
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-04|everton|manchester-city",
+      "target": 1,
+      "probabilities": [
+        0.5220183211865771,
+        0.22729619186067868,
+        0.25068548695274423
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-09|brighton-and-hove-albion|wolverhampton-wanderers",
+      "target": 2,
+      "probabilities": [
+        0.27193300151525446,
+        0.2201531478831089,
+        0.5079138506016366
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-09|fulham|afc-bournemouth",
+      "target": 0,
+      "probabilities": [
+        0.2330103332845817,
+        0.28953250811200576,
+        0.47745715860341253
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-09|liverpool|chelsea",
+      "target": 1,
+      "probabilities": [
+        0.250276364394318,
+        0.1990507304385522,
+        0.5506729051671297
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-09|manchester-city|brentford",
+      "target": 2,
+      "probabilities": [
+        0.10409779691550439,
+        0.11982279837395551,
+        0.7760794047105402
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-09|sunderland|manchester-united",
+      "target": 1,
+      "probabilities": [
+        0.5402717429318504,
+        0.1891120913889381,
+        0.27061616567921143
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-10|burnley|aston-villa",
+      "target": 1,
+      "probabilities": [
+        0.5047728940133319,
+        0.21267242412757242,
+        0.28255468185909566
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-10|crystal-palace|everton",
+      "target": 1,
+      "probabilities": [
+        0.3206626379292417,
+        0.31493025079577414,
+        0.36440711127498415
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-10|nottingham-forest|newcastle-united",
+      "target": 1,
+      "probabilities": [
+        0.30051024111406094,
+        0.23803874424273122,
+        0.46145101464320787
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-10|west-ham-united|arsenal",
+      "target": 0,
+      "probabilities": [
+        0.5034478231750753,
+        0.22060005038082525,
+        0.27595212644409944
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-11|tottenham-hotspur|leeds-united",
+      "target": 1,
+      "probabilities": [
+        0.23274478316307068,
+        0.1866271197795868,
+        0.5806280970573425
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-13|manchester-city|crystal-palace",
+      "target": 2,
+      "probabilities": [
+        0.07711044183702594,
+        0.2110134426061345,
+        0.7118761155568396
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-15|aston-villa|liverpool",
+      "target": 2,
+      "probabilities": [
+        0.4667624741835508,
+        0.20545103574325305,
+        0.32778649007319616
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-17|brentford|crystal-palace",
+      "target": 1,
+      "probabilities": [
+        0.32258002988755613,
+        0.3282382986474544,
+        0.34918167146498946
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-17|everton|sunderland",
+      "target": 0,
+      "probabilities": [
+        0.297754283282842,
+        0.23920131863353672,
+        0.4630443980836213
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-17|leeds-united|brighton-and-hove-albion",
+      "target": 2,
+      "probabilities": [
+        0.38778467232951497,
+        0.24340334936663438,
+        0.36881197830385065
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-17|manchester-united|nottingham-forest",
+      "target": 2,
+      "probabilities": [
+        0.1698927457614652,
+        0.3643183762478586,
+        0.46578887799067614
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-17|newcastle-united|west-ham-united",
+      "target": 2,
+      "probabilities": [
+        0.2946540073356925,
+        0.20465196364146526,
+        0.5006940290228422
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-17|wolverhampton-wanderers|fulham",
+      "target": 1,
+      "probabilities": [
+        0.4025138258559432,
+        0.20184792277443525,
+        0.3956382513696216
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-18|arsenal|burnley",
+      "target": 2,
+      "probabilities": [
+        0.07563349491903938,
+        0.13118187887695612,
+        0.7931846262040045
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-19|afc-bournemouth|manchester-city",
+      "target": 1,
+      "probabilities": [
+        0.6364761496115304,
+        0.16824248182412263,
+        0.1952813685643469
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-19|chelsea|tottenham-hotspur",
+      "target": 2,
+      "probabilities": [
+        0.2820984125137329,
+        0.2724633514881134,
+        0.4454382359981537
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-24|brighton-and-hove-albion|manchester-united",
+      "target": 0,
+      "probabilities": [
+        0.4817648673583528,
+        0.21313164273296722,
+        0.30510348990868
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-24|burnley|wolverhampton-wanderers",
+      "target": 1,
+      "probabilities": [
+        0.35103039522604923,
+        0.2164872236469637,
+        0.4324823811269871
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-24|crystal-palace|arsenal",
+      "target": 0,
+      "probabilities": [
+        0.5182795601826841,
+        0.3023372337570374,
+        0.1793832060602785
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-24|fulham|newcastle-united",
+      "target": 2,
+      "probabilities": [
+        0.42492178082466125,
+        0.22321289777755737,
+        0.35186532139778137
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-24|liverpool|brentford",
+      "target": 1,
+      "probabilities": [
+        0.14880565030583218,
+        0.22500850595546523,
+        0.6261858437387026
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-24|manchester-city|aston-villa",
+      "target": 0,
+      "probabilities": [
+        0.1039908112284783,
+        0.24532517031804235,
+        0.6506840184534793
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-24|nottingham-forest|afc-bournemouth",
+      "target": 1,
+      "probabilities": [
+        0.39206504821777344,
+        0.26414814591407776,
+        0.3437868058681488
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-24|sunderland|chelsea",
+      "target": 2,
+      "probabilities": [
+        0.5383867541195936,
+        0.2197113600416279,
+        0.24190188583877853
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-24|tottenham-hotspur|everton",
+      "target": 2,
+      "probabilities": [
+        0.16650499155364942,
+        0.2588156423149162,
+        0.5746793661314343
+      ]
+    },
+    {
+      "match_id": "2526|2026-05-24|west-ham-united|leeds-united",
+      "target": 2,
+      "probabilities": [
+        0.4134287063309165,
+        0.21369884054955365,
+        0.3728724531195299
+      ]
+    }
+  ]
+}

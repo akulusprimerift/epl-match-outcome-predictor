@@ -1,0 +1,12 @@
+{
+  "status": "complete",
+  "holdout_evaluated": true,
+  "completed_at_utc": "2026-09-05T07:25:13.980298+00:00",
+  "start_sha256": "8f3fd574c6f56e8ae1f0cf77c869dffdbcb2167a41280b4a2a8e4dfde9fe8bff",
+  "outputs_sha256": {
+    "reports/final_holdout_results.csv": "87fed97da210783690c14e8471abc09411c38d361a8dae495b06b492e65006b1",
+    "reports/final_holdout_predictions.json": "fa6e267384a1ace555d5174ff16e5f5dd000c7ca1c588aad62142b592891b7a4",
+    "reports/confusion_matrix_final_holdout.png": "d5446e5a0d78228eb4dbe8265619dee080b61def93e4b3313d69343e1b1cdb41",
+    "reports/final_holdout.md": "1c676dbdb89624c2b939022377c966b27adcb794bc8d773e1ba891017174705b"
+  }
+}

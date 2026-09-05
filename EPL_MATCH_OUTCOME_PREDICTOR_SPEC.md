@@ -1490,11 +1490,16 @@ Minimum fields:
 
 ## 17. Current Next Action
 
-Phases 0 through 8 are complete. The validated SofaScore export contains 180
+Phases 0 through 9 are complete. The validated SofaScore export contains 180
 team-season rows across 2017/18 through 2025/26, all with possession values and
 38 recorded matches. Model B passed all declared Phase 7 incremental-value
-rules on the frozen matched test cohort; the 2025/26 holdout remains unopened.
+rules on the frozen matched test cohort.
 Phase 8 selected and froze Model B using Section 10.6. The rationale is in
 `reports/model_selection.md` and the frozen configuration can be verified with
-`python -m src.freeze_model --verify`. Phase 9 is the next action and requires
-explicit user approval before evaluating the final holdout.
+`python -m src.freeze_model --verify`. Following explicit approval, Phase 9
+evaluated the frozen Model B once on all 380 fixtures from 2025/26, without
+refitting or tuning. Results, test-to-holdout degradation, and limitations are
+in `reports/final_holdout.md`; the completion receipt and separate Phase 9
+evaluation protocol preserve the original Phase 8 freeze record.
+Phase 10 is the next action and requires a separate user request. No modeling
+change may be optimized against the now-opened 2025/26 holdout.

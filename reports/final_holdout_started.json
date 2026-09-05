@@ -1,0 +1,9 @@
+{
+  "started_at_utc": "2026-09-05T07:25:13.081143+00:00",
+  "evaluation_commit": "829286c73919db7045670eb4613f14696e545e8f",
+  "freeze_record_sha256": "f3b9ac19656dc1a8218176250f182406895b4fa0bcff0cb3a8432a18cf79a530",
+  "protocol_sha256": "b1cef55163de0a28bff4b1a8dfd5d2daf20e79cd55bfd2ad97b5e3506a65dbb9",
+  "model_name": "model_b",
+  "season": "2526",
+  "row_count": 380
+}

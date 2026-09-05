@@ -4,14 +4,14 @@ A reproducible Python project for predicting English Premier League match
 outcomes as away-win, draw, and home-win probabilities using only information
 available before kickoff.
 
-The repository has completed Phases 0 through 8 and contains a validated
+The repository has completed Phases 0 through 9 and contains a validated
 **SofaScore team-season possession dataset**. It contains
 immutable raw EPL match files, leakage-safe pre-match features, frozen
 chronological splits, majority/logistic-regression benchmarks, and a tuned
 long-history XGBoost model. The coverage-matched baseline and possession model
 have also been trained and compared. Model B is the frozen final candidate.
-Phase 9 has been approved. Its evaluation-only extension is tested and recorded
-before the final 2025/26 holdout is opened.
+The final 2025/26 holdout has been evaluated once without retraining. Results
+and limitations are recorded in `reports/final_holdout.md`.
 
 ## Requirements
 
@@ -206,8 +206,10 @@ Phase 7 incremental-value rule. Full results are in
 Phase 8 selected Model B under Section 10.6: its test log loss (`1.031919`) is
 lower than Model A (`1.039492`) and Model A-Matched (`1.047621`), and it has the
 highest macro F1 of those three candidates. The comparison uses the same 380
-test fixtures. The advantage is modest and has not yet been tested on the final
-holdout. The rationale is recorded in `reports/model_selection.md`.
+test fixtures. The test advantage is modest; only the selected candidate was
+subsequently evaluated on the final holdout, so no holdout comparison against
+other candidates is claimed. The rationale is recorded in
+`reports/model_selection.md`.
 
 `config/model_config.json` records the selection and its timestamp. Its
 `frozen_candidate` section contains the exact 25-feature order, training-only
@@ -230,7 +232,27 @@ field itself.
 
 ## Final holdout evaluation (Phase 9)
 
-After approval, run the frozen selected candidate exactly once:
+Model B was evaluated on all 380 fixtures from 2025/26:
+
+| Metric | 2024/25 test | 2025/26 final holdout |
+|---|---:|---:|
+| Log loss (lower is better) | 1.031919 | 1.075037 |
+| Macro F1 | 0.366448 | 0.353288 |
+| Accuracy | 47.11% | 46.32% |
+
+Log loss worsened by 4.18%; accuracy dropped by 0.79 percentage points.
+Draw recognition is weak: just 2 of 104 draws were correctly classified
+(1.92% draw recall). This is a sequential pre-match backtest using earlier
+completed matches, not a preseason forecast. Possession for these fixtures
+comes from 2024/25; final 2025/26 averages are not prediction features.
+The result does not justify retuning against this now-opened holdout.
+
+The pre-evaluation suite passed all 132 tests. Probability, leakage, frozen
+artifact, and one-time evaluation checks are included. The evaluated model,
+feature order, parameters, split membership, and training-only medians remain
+unchanged.
+
+The approved one-time command now verifies and returns the saved result:
 
 ```bash
 python -m src.evaluate --model-name selected --split holdout --frozen
