@@ -1,4 +1,4 @@
-"""Build and freeze the possession-complete Phase 7 matched experiment."""
+"""Build and freeze the lagged-possession Phase 7 matched experiment."""
 
 from __future__ import annotations
 
@@ -234,8 +234,11 @@ def build_possession_complete_dataset(
         raise MatchedExperimentError(
             f"Could not build baseline features for the matched cohort: {exc}"
         ) from exc
+    validated_possession = _validate_team_season_possession(
+        team_season_possession
+    )
     possession_features = build_lagged_possession_features(
-        canonical, team_season_possession
+        canonical, validated_possession
     )
     try:
         matched = baseline.merge(
@@ -254,6 +257,13 @@ def build_possession_complete_dataset(
     eligible_seasons = set(
         season_order[season_order.index(model_b_period_start) :]
     )
+    available_targets = set(validated_possession["target_season"].astype(str))
+    missing_targets = sorted(eligible_seasons.difference(available_targets))
+    if missing_targets:
+        raise MatchedExperimentError(
+            "No preceding-season possession table exists for eligible target "
+            f"seasons: {missing_targets}"
+        )
     complete_mask = (
         matched["season"].astype(str).isin(eligible_seasons)
     )
@@ -374,7 +384,7 @@ def split_matched_dataset(
         ).reset_index(drop=True)
         if split_frame.empty:
             raise MatchedExperimentError(
-                f"Possession-complete {split_name} split is empty; "
+            f"Possession-eligible {split_name} split is empty; "
                 "coverage is insufficient for Phase 7."
             )
         match_ids = set(split_frame["match_id"].astype(str))
@@ -452,10 +462,20 @@ def _assert_frozen_equal(
     *,
     artifact_name: str,
 ) -> None:
+    frozen_comparable = frozen.copy()
+    rebuilt_comparable = rebuilt.copy()
+    for column in POSSESSION_FEATURE_ADDITIONS:
+        if column in frozen_comparable and column in rebuilt_comparable:
+            frozen_comparable[column] = pd.to_numeric(
+                frozen_comparable[column], errors="raise"
+            ).astype("Float64")
+            rebuilt_comparable[column] = pd.to_numeric(
+                rebuilt_comparable[column], errors="raise"
+            ).astype("Float64")
     try:
         pd.testing.assert_frame_equal(
-            frozen.reset_index(drop=True),
-            rebuilt.reset_index(drop=True),
+            frozen_comparable.reset_index(drop=True),
+            rebuilt_comparable.reset_index(drop=True),
             check_dtype=False,
             check_exact=False,
             rtol=0.0,

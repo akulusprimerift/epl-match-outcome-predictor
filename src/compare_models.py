@@ -181,7 +181,7 @@ def _build_report(
     lines = [
         "# Phase 7 Matched Possession Experiment",
         "",
-        "Model A-Matched and Model B use one frozen possession-complete fixture "
+        "Model A-Matched and Model B use one frozen possession-eligible fixture "
         "cohort. This comparison measures predictive association on that cohort; "
         "it does not establish that possession causes match outcomes.",
         "",

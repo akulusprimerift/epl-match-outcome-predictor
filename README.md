@@ -4,12 +4,13 @@ A reproducible Python project for predicting English Premier League match
 outcomes as away-win, draw, and home-win probabilities using only information
 available before kickoff.
 
-The repository has completed Phases 0 through 6 and contains a validated
+The repository has completed Phases 0 through 7 and contains a validated
 **SofaScore team-season possession dataset**. It contains
 immutable raw EPL match files, leakage-safe pre-match features, frozen
 chronological splits, majority/logistic-regression benchmarks, and a tuned
-long-history XGBoost model. Model A-Matched and Model B have not been trained,
-and the final 2025/26 holdout has not been evaluated. Phase 7 is the next phase.
+long-history XGBoost model. The coverage-matched baseline and possession model
+have also been trained and compared. The final 2025/26 holdout has not been
+evaluated; Phase 8 model-selection freeze is the next phase.
 
 ## Requirements
 
@@ -172,8 +173,8 @@ one-season lag is mandatory to prevent future leakage.
 ## Run the matched possession experiment
 
 The validated source-season coverage is 100%, so the first eligible Model B
-target season is 2018/19. Phase 7 joins the lagged team-season table with these
-commands:
+target season is 2018/19. Phase 7 joins the lagged team-season table and can be
+reproduced with these commands:
 
 ```bash
 python -m src.train_xgboost --model-name model_a_matched --feature-set baseline_matched
@@ -186,6 +187,14 @@ rows and columns plus `home_previous_season_possession`,
 `away_previous_season_possession`, and `possession_edge`. Both variants must use
 identical match IDs, and neither may use a final possession average from the
 fixture's own season.
+
+The completed comparison used 1,900 training, 380 validation, and 380 test
+fixtures for each model. Model B lowered test log loss from `1.047621` to
+`1.031919`, increased test macro F1 from `0.330596` to `0.366448`, and increased
+test accuracy from `0.450000` to `0.471053`. It therefore passes every declared
+Phase 7 incremental-value rule. This is not yet a production-model selection;
+that decision belongs to Phase 8. Full results are in
+`reports/possession_experiment.md`.
 
 ## Validate the project
 

@@ -1490,7 +1490,8 @@ Minimum fields:
 
 ## 17. Current Next Action
 
-Phases 0 through 6 are complete. The validated SofaScore export contains 180
+Phases 0 through 7 are complete. The validated SofaScore export contains 180
 team-season rows across 2017/18 through 2025/26, all with possession values and
-38 recorded matches. Phase 7 is the current next action: revise the matched
-experiment to consume the lagged team-season table, then run its required tests.
+38 recorded matches. Model B passed all declared Phase 7 incremental-value
+rules on the frozen matched test cohort; the 2025/26 holdout remains unopened.
+Phase 8 model-selection freeze is the current next action.

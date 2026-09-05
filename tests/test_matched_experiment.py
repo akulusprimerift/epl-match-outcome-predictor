@@ -111,9 +111,15 @@ class LaggedPossessionFeatureTests(unittest.TestCase):
             model_b_period_start="1011",
         )
         self.assertEqual(len(dataset), len(self.canonical))
-        self.assertTrue(dataset["home_previous_season_possession"].eq(57.0).all())
-        self.assertTrue(dataset["away_previous_season_possession"].eq(43.0).all())
-        self.assertTrue(dataset["possession_edge"].eq(14.0).all())
+        alpha_home = dataset["home_team"].eq("Alpha")
+        self.assertTrue(
+            dataset.loc[alpha_home, "home_previous_season_possession"].eq(57.0).all()
+        )
+        self.assertTrue(
+            dataset.loc[alpha_home, "away_previous_season_possession"].eq(43.0).all()
+        )
+        self.assertTrue(dataset.loc[alpha_home, "possession_edge"].eq(14.0).all())
+        self.assertTrue(dataset.loc[~alpha_home, "possession_edge"].eq(-14.0).all())
 
     def test_current_fixture_possession_cannot_change_lagged_features(self) -> None:
         baseline = build_possession_complete_dataset(
@@ -125,6 +131,7 @@ class LaggedPossessionFeatureTests(unittest.TestCase):
         mutated = deepcopy(self.canonical)
         mutated.loc[:, "home_possession"] = 99.0
         mutated.loc[:, "away_possession"] = 1.0
+        mutated.loc[:, "api_fixture_id"] = range(1, len(mutated) + 1)
         rebuilt = build_possession_complete_dataset(
             mutated,
             build_team_history_frame(mutated),
@@ -165,7 +172,13 @@ class LaggedPossessionFeatureTests(unittest.TestCase):
             model_b_period_start="1011",
         )
         self.assertEqual(len(dataset), len(self.canonical))
-        self.assertTrue(dataset["away_previous_season_possession"].isna().all())
+        beta_home = dataset["home_team"].eq("Beta")
+        self.assertTrue(
+            dataset.loc[beta_home, "home_previous_season_possession"].isna().all()
+        )
+        self.assertTrue(
+            dataset.loc[~beta_home, "away_previous_season_possession"].isna().all()
+        )
         self.assertTrue(dataset["possession_edge"].isna().all())
 
     def test_missing_established_team_average_fails_instead_of_imputing(self) -> None:
@@ -184,6 +197,20 @@ class LaggedPossessionFeatureTests(unittest.TestCase):
         invalid.loc[:, "source_season"] = "1011"
         with self.assertRaisesRegex(MatchedExperimentError, "source season N-1"):
             build_lagged_possession_features(self.canonical, invalid)
+
+    def test_eligible_season_without_preceding_table_is_rejected(self) -> None:
+        future_only = team_season_possession(include_future_source=True).loc[
+            lambda frame: frame["source_season"].eq("1011")
+        ].reset_index(drop=True)
+        with self.assertRaisesRegex(
+            MatchedExperimentError, r"eligible target seasons: \['1011'\]"
+        ):
+            build_possession_complete_dataset(
+                self.canonical,
+                self.history,
+                team_season_possession=future_only,
+                model_b_period_start="1011",
+            )
 
 
 class MatchedCohortContractTests(unittest.TestCase):
@@ -323,6 +350,7 @@ class ModelBAcceptanceRuleTests(unittest.TestCase):
         self.assertIn("PASS — Test log loss", report)
         self.assertIn("FAIL — Test macro F1", report)
         self.assertIn("PASS — Frozen-row", report)
+        self.assertIn("possession-eligible fixture cohort", report)
         self.assertIn("does not establish", report)
         self.assertIn("holdout remains unopened", report)
 
